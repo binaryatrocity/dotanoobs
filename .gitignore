@@ -1,0 +1,6 @@
+# Bytpe-compilzed
+__pycache__/
+*.py[cod]
+
+*.so
+
