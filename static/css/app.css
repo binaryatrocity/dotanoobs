@@ -1,0 +1,56 @@
+body {
+   /*background:url("../img/back_pattern.png") repeat fixed 0 0 transparent;*/
+}
+#container {
+    width: 80%;
+    margin: 1em auto 6em;
+}
+#biglogo {
+    width:75%;
+}
+.dark-panel {
+    background: -moz-linear-gradient(center top, #222222 0%, #313331 100%);
+    border: 5px solid #999999;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+    color: #fff;
+}
+.uk-navbar-brand > img, .uk-navbar-flip > img {
+    height:35px;
+}
+
+footer {
+    width:60%;
+    text-align:center;
+    border-top: 1px solid #999;
+    padding:8px 30px;
+}
+
+#ocnav-header {
+    padding-left:22%;
+    color: white;
+}
+.uk-nav-side > li.uk-active > a {
+    background-color: #6FAC34;
+}
+
+.dn-news-article > .uk-article-title {
+    font-size:26px;
+}
+.dn-news-article > .uk-article-title:hover {
+    text-decoration:underline;
+}
+
+#about-us-more, #less {
+    display:none;
+}
+
+.team_logo {
+    border-radius:6px;
+    margin-right: 1em;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+}
+
+.botpad {
+    padding-bottom:80px;
+}

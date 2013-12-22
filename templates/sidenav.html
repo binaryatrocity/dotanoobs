@@ -1,0 +1,25 @@
+    {% for endpoint, title in [
+    ('index', 'Home'),
+    ('friends', 'Friends'),
+    ('list_events', 'Events'),
+    ('community', 'Community'),
+    ('ladder', 'Ladder'),
+    ] %}
+    <li{% if endpoint == request.endpoint %} class='uk-active' {% endif %}>
+    <a href="{{ url_for(endpoint) }}">{{ title }}</a>
+    </li>
+    {% endfor %}
+    <li class="uk-nav-divider"></li>
+    <li class="uk-nav-header">Social</li>
+    <li><a href="http://board.dotanoobs.com"><i class="uk-icon-group"> Board</i></a></li>
+    <li><a href="http://www.youtube.com/user/DotaNoobsVods"><i class="uk-icon-youtube"> YouTube</i></a></li>
+    <li><a href="http://webchat.oftc.net/?channels=dotanoobs&uio=d4"><i class="uk-icon-comments-alt"> IRC Chat</i></a></li>
+    <li class="uk-nav-divider"></li>
+    {% if not g.doob%}
+    <li><a href="{{ url_for('login') }}"><i class="uk-icon-off"> Login</i></a></li>
+    <li><a href="{{ url_for('login') }}"><i class="uk-icon-cog"> Register</i></a></li>
+    {% else %}
+    <li {% if request.endpoint == 'doob_summary' %} class='uk-active' {% endif %}><a href="{{ url_for('doob_summary', playerid=g.doob._id) }}"><i class="uk-icon-home"> Profile</i></a></li>
+    <li><a href="{{ url_for('doob_summary', playerid=g.doob._id) }}"><i class="uk-icon-cog"> Settings</i></a></li>
+    <li><a href="{{ url_for('logout') }}"><i class="uk-icon-off"> Logout</i></a></li>
+    {% endif %}

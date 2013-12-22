@@ -1,0 +1,45 @@
+.uk-panel.tavern {
+    border-left: 2px solid #CCCCCC;
+    display: inline-block;
+    padding: 2px;
+}
+.uk-panel.tavern > img {
+    padding:4px;
+    margin:2px;
+}
+#tavernStrength, #tavernAgility, #tavernIntelligence {
+        display:block;
+        background-image:url('http://media.steampowered.com/apps/dota2/images/heropedia/overviewicon_str.png');
+        background-repeat:no-repeat;
+        overflow:visible;
+        text-transform:uppercase;
+        color: rgba(105,211,50,0.75);
+        padding:6px 10px 15px 40px;
+}
+#tavernAgility{
+	background-image:url('http://media.steampowered.com/apps/dota2/images/heropedia/overviewicon_agi.png');
+}
+#tavernIntelligence{
+	background-image:url('http://media.steampowered.com/apps/dota2/images/heropedia/overviewicon_int.png');
+}
+
+.heroIcons {
+	text-align:left;
+}
+
+.heroCol {
+	float:left;
+	width:277px;
+	text-align:center;
+}
+
+.filterMatchedHero {
+	background-color:#000;
+}
+.filterUnmatchedHero {
+	filter:alpha(opacity=25);
+	-moz-opacity: .25;
+	opacity: .25;
+  	background-color:#000000;
+  	cursor:default;
+}

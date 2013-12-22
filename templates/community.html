@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% block title %}Dota Noobs - Community{% endblock %}
+
+{% block content %}
+
+<img id="biglogo" src="{{ url_for('static', filename='img/biglogo.png') }}">
+
+<div class="panel" style="margin-left: 5em; margin-right: 5em">
+	<h2>Welcome to the Doobs Community!</h2>
+	<div class='panel'>
+		<p class="left">
+			This part of our site is dedicated to our members. If you're interested in contributing to the page, let one of the admins know!
+		</p>
+		<p class="left">
+			On this page you'll find content created by the members of the Doobs community. There's a link to some custom items builds people have put together (cough...Gambit...cough), an archive of past Doobs inhouses as well as some games that members have cast/analyzed, as well as a blog that focuses on anything and everything DotA, pub or pro, you'll find something about it on the blog.
+		</p>
+		<p class="left">
+			All in all, this is a page for our members, if you want something that you don't see, let us know and we'll take care of it!
+		</p>
+	</div>
+</div>
+
+<div class="panel clickable" style="margin-right: 5em; margin-left: 5em;" data-href="http://www.youtube.com/user/DotaNoobsVods?feature=watch">
+	<h2>Video Archive</h2>
+	<ul id="videos">
+	</ul>
+</div>
+
+<div class="panel" style="margin-left: 5em; margin-right: 5em;">
+	<h2>Latest Posts</h2>
+	{% for post in latest_posts %}
+		<div class="panel clickable" data-href="{{ post['url'] }}">
+			<h3 style="float: left">{{ post['title'] }}</h3>
+			<div class="date" style="float: right">{{ timestamp_to_js_date(post['date']) }}</div>
+			<div style="clear: both; float: left">by {{ post['user'] }}</div>
+		</div>
+	{% endfor %}
+</div>
+
+<script>
+$(document).ready(function() {
+	// Add the video archive
+	var youtube_url = "http://gdata.youtube.com/feeds/users/DotaNoobsVods/uploads?alt=json-in-script&orderby=published&max-results=3&callback=?"
+	$.getJSON(youtube_url, function(data) {
+		for (var idx in data.feed.entry) {
+			var entry = data.feed.entry[idx];
+			console.log(entry);
+			$('#videos').append("<div class='panel horizontal clickable' style='max-width: 25%; float: left; overflow: hidden;' id='video-" + idx + "' data-href='" + entry.link[0].href + "'>");
+			var jquery_selector = '#video-' + idx;
+			$(jquery_selector).append('<h3>' + entry.title['$t'] + '</h3>');
+			$(jquery_selector).append('<img style="width: 90%;" src="' + entry['media$group']['media$thumbnail'][0].url + '">');
+			setup_clickable(jquery_selector);
+			$('#videos').append("</div>");
+		}
+	});
+	// Localize the events
+	$('.date').each( function( index ) {
+		var d = new Date($(this).text());
+		$(this).text( d.toLocaleDateString() + ' @ ' + d.toLocaleTimeString() );
+	});
+});
+</script>
+
+{% endblock %}

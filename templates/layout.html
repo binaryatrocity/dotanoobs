@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% block head %}
+        <title>{% block title %}{% endblock %}</title>
+        {% endblock %}
+
+        <!-- Meta-tags -->
+        <meta name="viewport" content="initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+        <!-- CSS includes -->
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/uikit.gradient.min.css') }}" />
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}" />
+
+        <!-- Javascript includes -->
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script src="{{ url_for('static', filename='js/uikit.min.js') }}"></script>
+    </head>
+    <body>
+        <!-- Navigation bar -->
+        <nav class="uk-navbar uk-navbar-attached" data-uk-navbar>
+        <a href="#offcanvas" class="uk-navbar-brand uk-hidden-large" data-uk-offcanvas><img src="{{ url_for('static', filename='img/navlogo.png') }}" /><i class="uk-icon-double-angle-down"></i></a>
+        <a href="" class="uk-navbar-brand uk-visible-large" data-uk-offcanvas><img src="{{ url_for('static', filename='img/navlogo.png') }}" /></a>
+        {#    /* In header drop-down navigation, possibly reenable as static "you are here" marker  */
+        <ul class="uk-navbar-nav">
+            <li data-uk-dropdown="" class="uk-parent">
+            <a href="{{ url_for('main') }}"><i class="uk-icon-home"></i> Home</a>
+            <div class="uk-dropdown uk-dropdown-navbar">
+                <ul class="uk-nav uk-nav-navbar">
+                    <li><a href="http://board.dotanoobs.com">Board</a></li>
+                    <li><a href="{{ url_for('teamspeak') }}">TeamSpeak</a></li>
+                    <li class="uk-nav-header">Doobs</li>
+                    <li><a href="{{ url_for('doobs_stuff.list_events') }}">Events</a></li>
+                    <li><a href="{{ url_for('doobs_stuff.ladder') }}">Ladder</a></li>
+                </ul>
+            </div>
+            </li>
+        </ul>
+        #}
+        <!-- Check if user is logged in -->
+        {% if g.user %}
+        <ul class="uk-navbar-nav uk-navbar-flip">
+            <li data-uk-dropdown="" class="uk-parent">
+            <a href="#"><img class="uk-responsive-height" src="{{ g.user.avatar
+                }}" /> {{ g.user.nickname }} </a>
+            <div class="uk-dropdown uk-dropdown-navbar">
+                <ul class="uk-nav uk-nav-navbar">
+                    {#
+                    <li><a href="{{ url_for('doobs_stuff.doob_summary', playerid=g.doob._id) }}">Profile</a></li>
+                    <li><a href="{{ url_for('doobs_stuff.doob_random', playerid=g.doob._id) }}">A-Z Challenge</a></li>
+                    <!--<li class="uk-disabled"><a href="">Recent Events</a></li>-->
+                    <li class="uk-nav-divider"></li>
+                    #}
+                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                </ul>
+           </div>
+        </ul>
+        {% else %}
+        <a class="uk-navbar-flip uk-navbar-content" href="{{ url_for('login') }}"><img src="http://cdn.steamcommunity.com/public/images/signinthroughsteam/sits_large_border.png" /></a>
+        {% endif %}
+        <div class="uk-navbar-content uk-navbar-center uk-hidden-small uk-text-bold">DotaNoobs</div>
+        </nav>
+
+        <!-- Flash Error Messages -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul class="flashes">
+            <a href="" class="uk-alert-close uk-close"></a>
+            {% for message in messages %}
+            <li class="uk-alert uk-alert-danger">{{ category }}:{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Start Main Container -->
+        <div id="container" class="uk-grid">
+            <!-- Big top logo -->
+            <div class="uk-width-1-1"><img class="uk-align-center" id="biglogo" src="{{ url_for('static', filename='img/biglogo.png') }}"></div>
+            <!-- Side navigation -->
+            <div class="uk-visible-large uk-width-1-5 uk-panel uk-panel-box">
+                {% if g.doob%}
+                <h3 class="uk-panel-title">{{ g.doob.name }}</h3>
+                <hr class="uk-nav-divider" />
+                {% endif %}
+                <ul class="uk-nav uk-nav-side">
+                    {% include 'sidenav.html'  %}
+                </ul>
+            </div>
+            <div id="offcanvas" class="uk-offcanvas">
+                <div class="uk-offcanvas-bar">
+                    {% if g.doob%}
+                    <h3 class="uk-panel-title">{{ g.doob.name }}</h3>
+                    {% endif %}
+                    <ul class="uk-nav uk-nav-offcanvas" data-uk-nav>
+                        {% include 'sidenav.html' %}
+                </ul>
+            </div>
+            </div>
+            <!-- Main content area -->
+            <div class="uk-width-large-4-5 uk-width-medium-5-5">
+                {% block content %}
+                {% endblock %}
+            </div>
+
+        </div>
+
+        <!-- Footer section -->
+        <footer class="uk-clearfix uk-align-center">
+        <div class="uk-float-left uk-visible-large">
+            <a href="http://flask.pocoo.org/"><img src="{{ url_for('static', filename='img/powered-by-flask-s.png') }}" alt="Flask"></a> &amp;
+            <a href="http://store.steampowered.com/"><img src="{{ url_for('static', filename='img/steam.png') }}" alt="Steam"></a>
+        </div>
+        &copy; Coypright 2013 by <a href="http://www.dotanoobs.com/"><img src="{{ url_for('static',filename='img/navlogo.png') }}" alt="DotaNoobs" /></a> 
+        <div class="uk-float-right uk-visible-large">
+            <a href="http://www.twitch.tv/dotanoobs"><img src="{{ url_for('static', filename='img/twitchicon.png') }}" width="32" alt="Twitch.tv" /></a>
+            <a href="http://www.youtube.com/user/DotaNoobsVods"><img src="{{ url_for('static', filename='img/youtube.png') }}" alt="YouTube" /></a>
+            <a href="emailto:admin@dotanoobs.com"><img src="{{ url_for('static', filename='img/email.png') }}" /></a>
+        </div>
+        </footer>
+        <!-- Page-specific javascript here -->
+        {% block pagescripts %}
+        {% endblock %}
+    </body>
+</html>
+

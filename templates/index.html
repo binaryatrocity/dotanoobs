@@ -1,0 +1,163 @@
+{% extends "layout.html" %}
+
+{% block title %}Dota Noobs{% endblock %}
+
+{% block content %}
+
+<div class="uk-grid" data-uk-grid-margin>
+    <div class="uk-width-large-1-2 uk-width-medium-1-1">
+        <div class=" uk-panel uk-panel-space uk-panel-box">
+            <h1 class="uk-panel-title">Who Are The Doobs!?</h1>
+            <p>Welcome to DotaNoobs! We are a community formed by a group of redditors in an effort to provide a fun and rage-free environment for Dota2 players of all skill levels to enjoy the game and learn from each other. We have a TeamSpeak server open to the public for voice communication; hopping into the server is the best way to get involved, so click on "Server" to the right to get started. </p>
+            <div id="about-us-more">
+                <p>Be sure to visit the forum board to keep in touch with the community even when not playing. Create an account, introduce yourself, and chat about all things DotA.</p>
+                <p>There is a "Dota Noobs" chat room inside the game client, and a "DotaNoobs" guild to help organzie games outside of TeamSpeak. Ask an admin for an invite today!</p>
+            </div>
+            <button class="uk-button uk-button-small uk-float-right" id="more">More <i class="uk-icon-angle-down"></i></button>
+            <button class="uk-button uk-button-small uk-float-right" id="less">Less <i class="uk-icon-angle-up"></i></button>
+        </div>
+    </div>
+    <div class="uk-width-large-1-2 uk-width-medium-1-1">
+        <div class="uk-panel uk-panel-space uk-panel-box">
+            <a href="ts3server://voice.dotanoobs.com"><div class="uk-panel-badge uk-badge uk-badge-success"><i class="uk-icon-microphone"> Connect to Teamspeak</i></div></a>
+            <h1 class="uk-panel-title">Our TeamSpeak Server</h1>
+            <ul>
+                <li>Current Users: {# active_doobs #}</li>
+                <li>Unique Clients This Month: {# num_unique_clients(teamspeak_data) #}</li>
+            </ul>
+            <button class="uk-button" data-uk-modal="{target:'#tsviewer'}">Viewer</button>
+            <a class="uk-button" href="{{ url_for('teamspeak') }}">Statistics</a>
+
+            <hr class="uk-panel-divider" />
+
+
+            <h1 class="uk-panel-title">Events</h1>
+            {#
+            {% if active_event %}
+            <article class="uk-article"> 
+                <h4>Right Now</h4>
+                <a href="{{ url_for('event_summary', eventid=active_event._id) }}">{{ active_event.name }}</a>
+                <p class="uk-article-meta">Ends at: {{ timestamp_to_js_date(active_event.end_time) }}</p>
+            </article>
+            {% endif %}
+            {% if upcoming_event %}
+            <article class="uk-article">
+                <h4>Next Event</h4>
+                <a href="{{ url_for('event_summary', eventid=upcoming_event._id) }}">{{ upcoming_event.name }}</a>
+                <p class="uk-article-meta">Starts at: {{ timestamp_to_js_date(upcoming_event.start_time) }}</p>
+            </article>
+            {% else %}
+                <em>No events planned for the near future. Suggest one on the forum!</em>
+            {% endif %}
+            #}
+            <em>No events planned for the near future. Suggest one on the forum!</em>
+        </div>
+        <div id="tsviewer" class="uk-modal">
+            <div class="uk-modal-dialog">
+                <a class="uk-modal-close uk-close"></a>
+                {# ts3_viewer() | safe #}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="uk-grid" data-uk-grid-margin>
+    <div class="uk-width-large-2-3 uk-width-medium-1-1">
+        <div class="uk-panel uk-panel-space uk-panel-box uk-panel-header">
+            <h1 class="uk-panel-title">News and Announcements</h1>
+            {% for news in latest_news %}
+                <article class="uk-article dn-news-article">
+                <h4 class="uk-article-title uk-text-truncate" data-uk-tooltip="{pos:'bottom-right'}" title="{{ news['title'] }}"><a href="{{ news['url'] }}">{{ news['title'] }}</a></h4>
+                    <p class="uk-article-meta">{{ news['date'] }}</p>
+                    <p>{{ news['text'] | shorten }}</p>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="uk-hidden-large uk-width-medium-1-1">
+        <div class="uk-panel uk-panel-space uk-panel-box uk-panel-header">
+            <a href="{{ url_for('list_events') }}"><div class="uk-panel-badge uk-badge uk-badge-success"><i class="uk-icon-calendar"> View All Events</i></div></a>
+            <h1 class="uk-panel-title">Events</h1>
+            {#
+            {% if active_event %}
+            <article class="uk-article"> 
+                <h4>Right Now</h4>
+                <a href="{{ url_for('event_summary', eventid=active_event._id) }}">{{ active_event.name }}</a>
+                <p class="uk-article-meta">Ends at: {{ timestamp_to_js_date(active_event.end_time) }}</p>
+            </article>
+            {% endif %}
+            {% if upcoming_event %}
+            <article class="uk-article">
+                <h4>Next Event</h4>
+                <a href="{{ url_for('event_summary', eventid=upcoming_event._id) }}">{{ upcoming_event.name }}</a>
+                <p class="uk-article-meta">Starts at: {{ timestamp_to_js_date(upcoming_event.start_time) }}</p>
+            </article>
+            {% else %}
+                <em>No events planned for the near future. Suggest one on the forum!</em>
+            {% endif %}
+            #}
+            <em>No events planned for the near future. Suggest one on the forum!</em>
+        </div>
+    </div>
+    <div class="uk-width-large-1-3 uk-width-medium-1-1">
+        <div class="uk-panel uk-panel-space uk-panel-box uk-panel-header">
+            <h1 class="uk-panel-title">Live Streams</h1>
+            <ul id="streams-online"></ul>
+            <hr id="stream-divider" class="uk-article-divider" style="display:none;" />
+            <ul id="streams-offline"></ul>
+        </div>
+    </div>
+</div>
+</div>
+
+{% endblock %}
+
+{% block pagescripts %}
+<script>
+$(document).ready(function() {
+	// Add the streams
+	var stream_url = "https://api.twitch.tv/kraken/streams/";
+        var channels = ["dotanoobs", "bearhugdota", "kreejaffakree", "prettypenguins", "shaneomad"];
+	for (var idx in channels) {
+		$.getJSON(stream_url+channels[idx]+"?callback=?", function(data) {
+			if (data.stream) {
+				$('#streams-online').append("<article class='uk-article' id='" + data.stream.channel.name + "'>");
+				var jquery_selector = '#'+data.stream.channel.name;
+                                $(jquery_selector).append("<a href='"+data.stream.channel.url+"'><h4>" + data.stream.channel.display_name + "</h4></a>")
+				var span_text = "<p class='uk-article-meta'>";
+				span_text = span_text + "Playing: " + data.stream.game  + "<br />";
+				span_text = span_text + "Viewers: " + data.stream.viewers + "<br />";
+				span_text = span_text + "</p>";
+				$(jquery_selector).append(span_text);
+				$(jquery_selector).append("<img src='" + data.stream.preview.medium + "' />")
+				$('#streams-online').append("</article>");
+                                $('#stream-divider').show();
+			} else {
+				$.getJSON(data._links.channel+"?callback=?", function(data) {
+					$('#streams-offline').append("<article class='uk-article' id='" + data.name + "'>");
+                                        $('#'+data.name).append("<a href='"+data.url+"'><h4>" + data.display_name + "</h4></a>");
+					$('#'+data.name).append("<img src='" + data.logo + "' style='float: right;' width='62' height='62' /><br />");
+					$('#'+data.name).append("<p class='uk-article-meta'><strong>Offline</strong></p>");
+					$('#streams-offline').append("</div>");
+				});
+			}
+		});
+        }
+        
+        // Localize the events
+	$('.date').each( function( index ) {
+		var d = new Date($(this).text());
+		$(this).text( d.toLocaleDateString() + ' @ ' + d.toLocaleTimeString() );
+        });
+
+        // About-us toggle
+        $('#more,#less').click(function() {
+            $('#more').toggle();
+            $('#less').toggle();
+            $('#about-us-more').toggle();
+        });
+
+});
+</script>
+
+{% endblock %}

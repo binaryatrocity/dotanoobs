@@ -1,0 +1,187 @@
+{% extends "layout.html" %}
+
+{% block title %}Dota Noobs - Teamspeak{% endblock %}
+
+{% block head %}
+<script src="http://code.highcharts.com/3.0.1/highcharts.js"></script>
+<script type="text/javascript" src="http://github.highcharts.com/75c66eb3/modules/map.src.js"></script>
+<script type="text/javascript" src="http://github.highcharts.com/75c66eb3/modules/data.src.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/world-map-shapes.js') }}"></script>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/ts3_viewer.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="uk-grid">
+    <div class="uk-width-large-1-2 uk-width-medium-1-1">
+        <h3 class="uk-text-bold uk-text-center">Recent Activity</h3>
+        <div class="uk-panel uk-panel-box" id="teamspeak_active_users"></div>
+        <div class="uk-panel uk-panel-box" id="unique_clients"></div>
+        <div class="uk-panel uk-panel-box" id="teamspeak_map"></div>
+        <div class="uk-panel uk-panel-divider"></div>
+    </div>
+    <div class="uk-width-large-1-2 uk-width-medium-1-1">
+        <h3 class="uk-text-bold uk-text-center">Current Status</h3>
+        <div class="uk-panel uk-panel-space uk-panel-box uk-text-center">
+            <a class="uk-button uk-button-success" href="ts3server://voice.dotanoobs.com">Connect</a>
+            <a class="uk-button uk-button-primary" href="http://www.teamspeak.com/download">Download</a>
+            <div class="uk-panel">
+                {{ ts3_viewer() | safe }}
+            </div>
+            <h5>Server: voice.dotanoobs.com</h5>
+        </div>
+    </div>
+</div>
+
+{#
+<div>
+	<div class="panel left" style="margin-left: 5em; width: 45%;">
+		<h2 style="text-align: center">Last Week's Activity</h2>
+		<div class="panel vertical" id="teamspeak_active_users"></div>
+		<div class="panel vertical" id="unique_clients"></div>
+		<div class="panel vertical" id="teamspeak_map"></div>
+	</div>
+
+	<div class="panel right" style="width: 30%; margin-right: 5em">
+			<h2>Current Status</h2>
+			<div class='panel vertical clickable' data-href="ts3server://voice.dotanoobs.com">
+				<h5>Server: voice.dotanoobs.com</h5>
+			</div>
+			<div class='panel vertical'>
+				{{ ts3_viewer() | safe }}
+			</div>
+	</div>
+</div>
+#}
+{% endblock %}
+
+{% block pagescripts %}
+{% cache 60*5 %}
+{% set teamspeak_data = getTeamspeakWindow() %}
+<script>
+$(document).ready(function() {
+	$('#unique_clients').html("<h3>Number of unique clients: {{ num_unique_clients(teamspeak_data) }}</h3>");
+	Highcharts.setOptions({
+		global: {
+			useUTC: false
+		}
+	});
+	var chart = new Highcharts.Chart({
+		chart: {
+			renderTo: 'teamspeak_active_users',
+			alignTicks: false,
+		},
+		title: {
+			text: null,
+		},
+		xAxis: {
+			type: 'datetime',
+			dateTimeLabelFormats: {
+				hour: '%l%P',
+				day: '%a',
+			},
+		},
+		yAxis: {
+			title: {
+				text: 'Active Users',
+			},
+			min: 0,
+			tickInterval: 5,
+		},
+		tooltip: {
+			formatter: function() {
+					return Highcharts.dateFormat('%a %b %e @ %l%P', this.x) + ' <b>(' + this.y + ')</b>';
+			}
+		},
+		plotOptions: {
+			series: {
+				marker: {
+					enabled: false
+				}
+			}
+		},
+		series: [{
+			showInLegend: false,
+			type: 'areaspline',
+			data: [
+				{% for data in teamspeak_data %}
+					[new Date('{{ timestamp_to_js_date(data.time) }}').valueOf(), {{ data.clients | count }}],
+				{% endfor %}
+			],
+		}],
+	});
+	var map_options = {
+		chart: {
+			renderTo: 'teamspeak_map',
+			borderWidth: 1,
+			zoomType: 'xy'
+		},
+		title: {
+			text: 'Doobs by country'
+		},
+		legend: {
+			align: 'left',
+			verticalAlign: 'bottom',
+			floating: true,
+			layout: 'vertical',
+			valueDecimals: 0
+		},
+		series: [{
+			name: 'Active users',
+			data: [],
+			valueRanges: [{
+				to: 1,
+				color: 'rgba(19,64,117,0.05)'
+			}, {
+				from: 1,
+				to: 5,
+				color: 'rgba(19,64,117,0.4)'
+			}, {
+				from: 5,
+				to: 10,
+				color: 'rgba(19,64,117,0.5)'
+			}, {
+				from: 10,
+				to: 20,
+				color: 'rgba(19,64,117,0.6)'
+			}, {
+				from: 20,
+				to: 30,
+				color: 'rgba(19,64,117,0.8)'
+			}, {
+				from: 30,
+				color: 'rgba(19,64,117,1)'
+			}],
+			states: {
+				hover: {
+					color: '#DD6E28'
+				}
+			}
+		}]
+	};
+	// Populate the data points
+	var data = {{ num_unique_clients_by_country(teamspeak_data) | tojson | safe }};
+	var country_names = {{ country_abbreviation_mapping() | tojson | safe }};
+	for (var key in shapes) {
+		var num = 0;
+		if (key in data) {
+			num = data[key];
+		}
+		map_options.series[0].data.push({
+			y: num,
+			name: country_names[key],
+			path: Highcharts.pathToArray(shapes[key]),
+			states: {
+				hover: {
+					color: '#FF7F00'
+				}
+			}
+		});
+	}
+	// Finalize the map
+	var map = new Highcharts.Map(map_options);
+});
+</script>
+{% endcache %}
+
+{% endblock %}
