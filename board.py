@@ -1,4 +1,5 @@
 import os
+import re
 from time import strftime, gmtime
 from peewee import *
 from app import app, cache
@@ -7,26 +8,30 @@ db = MySQLDatabase(app.config['FORUM_NAME'], **{'passwd': app.config['FORUM_PASS
 					'host': app.config['FORUM_HOST'], 'user': app.config['FORUM_USERNAME']})
 
 @cache.memoize(60*5)
-def latest_news(num=2):
+def latest_news(num=3):
 	latest_news = []
-	try:
+        try:
 		db.connect()
 		news_forum = Forums.get(fn.Lower(Forums.title) % '%news%')
 		for thread in Threads.select().where(
-			Threads.forum == news_forum.id).order_by(Threads.date).limit(num):
+			Threads.forum == news_forum.id).order_by(Threads.date.desc()).limit(num):
 				# Last revision of the first post
 				post = Posts.select().where(Posts.thread == thread.id).get()
-				text = PostsText.select().where(PostsText.pid == post.id).order_by(PostsText.revision.desc()).limit(1).get()
+				raw_text = PostsText.select().where(PostsText.pid == post.id).order_by(PostsText.revision.desc()).limit(1).get()
+
+                                #remove BBCode
+                                text = re.sub(r"\[(\/)?(\w+)\]", '', raw_text.text)
+
 				timestamp = thread.date
 				date = strftime('%B %d, %Y %H:%M:%S UTC', gmtime(timestamp))
-				if not date:
+				if not timestamp:
 					post = Posts.select().where(Posts.thread == thread.id).get()
-					date = post and post.date
+					timestamp = post and post.date
 				url = 'http://board.dotanoobs.com/?page=thread&id=%d' % thread.id
-				latest_news.append({'title':thread.title, 'text':text.text, 'date':date, 'timestamp':timestamp, 'url':url})
+				latest_news.append({'title':thread.title, 'text':text, 'date':date, 'timestamp':timestamp, 'url':url})
 	except Exception as e:
 		latest_news.append({'title':'Error with forum db', 'text':e, 'url':''})
-	finally:
+        finally:
 		db.close()
 	return latest_news
 					

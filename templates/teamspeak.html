@@ -3,10 +3,6 @@
 {% block title %}Dota Noobs - Teamspeak{% endblock %}
 
 {% block head %}
-<script src="http://code.highcharts.com/3.0.1/highcharts.js"></script>
-<script type="text/javascript" src="http://github.highcharts.com/75c66eb3/modules/map.src.js"></script>
-<script type="text/javascript" src="http://github.highcharts.com/75c66eb3/modules/data.src.js"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/world-map-shapes.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/ts3_viewer.css') }}">
 {% endblock %}
 
@@ -15,52 +11,41 @@
 <div class="uk-grid">
     <div class="uk-width-large-1-2 uk-width-medium-1-1">
         <h3 class="uk-text-bold uk-text-center">Recent Activity</h3>
-        <div class="uk-panel uk-panel-box" id="teamspeak_active_users"></div>
-        <div class="uk-panel uk-panel-box" id="unique_clients"></div>
-        <div class="uk-panel uk-panel-box" id="teamspeak_map"></div>
+        <div class="uk-panel">
+            <ul>
+                <li>Active users connected: <span id="unique_clients"></span></li>
+                <li>Total users connected:  <span id="current_clients">{{ ts3_current_clients() }}</span></li>
+                <li>Countries active on server: <span id="country_clients"></span></li>
+        </div>
+        <div class="uk-panel" id="teamspeak_active_users"></div>
+        <div class="uk-panel" id="teamspeak_map"></div>
         <div class="uk-panel uk-panel-divider"></div>
     </div>
     <div class="uk-width-large-1-2 uk-width-medium-1-1">
-        <h3 class="uk-text-bold uk-text-center">Current Status</h3>
         <div class="uk-panel uk-panel-space uk-panel-box uk-text-center">
+            <h3 class="uk-text-bold uk-text-center">Current Status</h3>
             <a class="uk-button uk-button-success" href="ts3server://voice.dotanoobs.com">Connect</a>
             <a class="uk-button uk-button-primary" href="http://www.teamspeak.com/download">Download</a>
-            <div class="uk-panel">
+            <h5>Server: voice.dotanoobs.com</h5>
+            <div class="uk-panel uk-text-left">
                 {{ ts3_viewer() | safe }}
             </div>
-            <h5>Server: voice.dotanoobs.com</h5>
         </div>
     </div>
 </div>
-
-{#
-<div>
-	<div class="panel left" style="margin-left: 5em; width: 45%;">
-		<h2 style="text-align: center">Last Week's Activity</h2>
-		<div class="panel vertical" id="teamspeak_active_users"></div>
-		<div class="panel vertical" id="unique_clients"></div>
-		<div class="panel vertical" id="teamspeak_map"></div>
-	</div>
-
-	<div class="panel right" style="width: 30%; margin-right: 5em">
-			<h2>Current Status</h2>
-			<div class='panel vertical clickable' data-href="ts3server://voice.dotanoobs.com">
-				<h5>Server: voice.dotanoobs.com</h5>
-			</div>
-			<div class='panel vertical'>
-				{{ ts3_viewer() | safe }}
-			</div>
-	</div>
-</div>
-#}
 {% endblock %}
 
 {% block pagescripts %}
 {% cache 60*5 %}
-{% set teamspeak_data = getTeamspeakWindow() %}
+{% set teamspeak_data = get_teamspeak_window() %}
+<script src="http://code.highcharts.com/3.0.1/highcharts.js"></script>
+<script type="text/javascript" src="http://github.highcharts.com/75c66eb3/modules/map.src.js"></script>
+<script type="text/javascript" src="http://github.highcharts.com/75c66eb3/modules/data.src.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/world-map-shapes.js') }}"></script>
 <script>
 $(document).ready(function() {
-	$('#unique_clients').html("<h3>Number of unique clients: {{ num_unique_clients(teamspeak_data) }}</h3>");
+	$('#unique_clients').html("{{ ts3_active_clients(teamspeak_data) }}");
+	$('#country_clients').html("{{ ts3_countries_active(teamspeak_data) }}");
 	Highcharts.setOptions({
 		global: {
 			useUTC: false
@@ -160,7 +145,7 @@ $(document).ready(function() {
 		}]
 	};
 	// Populate the data points
-	var data = {{ num_unique_clients_by_country(teamspeak_data) | tojson | safe }};
+        var data = {{ num_unique_clients_by_country(teamspeak_data) | tojson | safe }};
 	var country_names = {{ country_abbreviation_mapping() | tojson | safe }};
 	for (var key in shapes) {
 		var num = 0;

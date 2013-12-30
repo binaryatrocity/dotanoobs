@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block title %}Profile - {{ user.nickname }}{% endblock %}
+
+{% block content %}
+<div class="uk-grid" data-uk-grid-margin>
+    <div class="uk-width-1-1 uk-panel">
+        <img class="uk-align-center" src="{{ user.avatar }}" />
+        <h2 class="uk-panel-title uk-text-center">Profile for {{ user.nickname }}</h2>
+    </div>
+    <!--Main content area -->
+    <div class="uk-width-large-2-3 uk-width-medium-1-1 uk-panel">
+        <div class="uk-panel">
+            main content area
+        </div>
+    </div>
+    <!-- Side bar -->
+    <div class="uk-width-large-1-3 uk-width-medium-1-1 uk-panel uk-panel-box">
+        <ul>
+            <li>Points [value]</li>
+            <li><a href="http://board.dotanoobs.com/?page=profile&id={{ user.id | safe }}">Forum Profile</a>
+            <li>Last seen on TeamSpeak: [value]<li>
+        </ul>
+        <hr class="uk-panel-divider" />
+        <div class="uk-container-center uk-text-center">
+            Randomstats
+            <span>Current Hero</span>
+            Heroimg
+        </div>
+    </div>
+</div>
+{% endblock %}

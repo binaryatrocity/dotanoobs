@@ -1,6 +1,6 @@
-import re
 from flask import render_template, flash, redirect, g, request, url_for, session
-from app import app, db, oid
+
+from app import app, db, oid, cache
 from models import User
 from utils import get_steam_userinfo
 from board import latest_news
@@ -40,24 +40,11 @@ def logout():
 	session.pop('user_id', None)
 	return redirect(oid.get_next_url())
 	
-	
-@app.template_filter('shorten')
-def shorten_filter(s, num_words=20):
-	space_iter = re.finditer('\s+', s)
-	output = u''
-	while num_words > 0:
-		match = space_iter.next()
-		if not match: break
-		output = s[:match.end()]
-		num_words -= 1
-	else:
-		output += '...'
-	return output
-	
+
 ### TEMPORARY ###
 @app.route('/teamspeak')
 def teamspeak():
-	return "Teamspeak!"
+        return render_template('teamspeak.html')
 @app.route('/list_events')
 def list_events():
 	return "Events list!"
@@ -70,6 +57,12 @@ def community():
 @app.route('/ladder')
 def ladder():
 	return "Ladder!"
+
+#From league/doobs_blueprint.py
+@app.route('/profile/<int:userid>')
+def user_profile(userid):
+    user = User.query.filter_by(id=userid).first_or_404()
+    return render_template('profile.html', user=user)
 
 '''
 from flask import render_template, flash, redirect, g, request, url_for

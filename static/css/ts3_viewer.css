@@ -1,0 +1,270 @@
+/**
+ *  This file is part of devMX TS3 Webviewer Lite.
+ *  Copyright (C) 2012  Maximilian Narr
+ *
+ *  devMX Webviewer Lite is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  TeamSpeak3 Webviewer is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with devMX TS3 Webviewer Lite.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+.devmx-webviewer
+{
+    font-family: sans-serif;
+    font-size: 14px;
+    white-space: nowrap;
+    width: 100%;
+    line-height: 1;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.tswv-link
+{
+    cursor: pointer;
+    text-decoration: inherit;
+    color: #000000;
+}
+
+/* Servername */
+.tswv-servername
+{
+    margin-left: 3px;
+}
+
+
+/* General */
+
+.tswv-channel,
+.tswv-client
+{
+    margin-left: 16px;
+    margin-top: 1px;
+}
+
+.tswv-label
+{
+    margin-left: 3px;
+}
+
+
+/* General image */
+ .tswv-image
+{
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-repeat: no-repeat;
+}
+
+/* Left aligned image */
+.tswv-image-left
+{
+    float: left;
+}
+
+/* Right aligned image */
+.tswv-image-right
+{
+    float: right;
+    margin-left: 3px;
+}
+
+
+/* Channels */
+/* normal channel */
+.tswv-channel-normal
+{
+    background-image: url("../img/ts3_viewer/channel-normal.png");
+}
+
+/* Full channel */
+.tswv-channel-full
+{
+    background-image: url("../img/ts3_viewer/channel-full.png");
+}
+
+/* Channel with password (channel Icon) */
+.tswv-channel-password
+{
+    background-image: url("../img/ts3_viewer/channel-password.png");
+}
+
+/* Channel with password (Lock icon) */
+.tswv-channel-password-right
+{
+    background-image: url("../img/ts3_viewer/channel-password-right.png"); 
+}
+
+/* Default channel */
+.tswv-channel-home
+{
+    background-image: url("../img/ts3_viewer/channel-home.png");
+}
+
+/* Moderated channel */
+.tswv-channel-moderated
+{
+    background-image: url("../img/ts3_viewer/channel-moderated.png");
+}
+
+/* Channel with 48khz codec */
+.tswv-channel-48khz
+{
+    background-image: url("../img/ts3_viewer/channel-48khz.png");
+}
+
+
+/* Server image */
+.tswv-server-image
+{
+    background-image: url("../img/ts3_viewer/server.png");
+}
+
+
+/* Clients */
+/* normal client */
+.tswv-client-normal
+{
+    background-image: url("../img/ts3_viewer/client-normal.png");
+}
+
+/* talking client */
+.tswv-client-talking
+{
+    background-image: url("../img/ts3_viewer/client-talking.png");
+}
+
+/* channelcommander */
+.tswv-client-channel-commander
+{
+    background-image: url("../img/ts3_viewer/client-channel-commander.png");
+}
+
+/* talking channelcommander */
+.tswv-client-channel-commander-talking
+{
+    background-image: url("../img/ts3_viewer/client-channel-commander-talking.png");
+}
+
+/* mic muted client */
+.tswv-client-input-muted
+{
+    background-image: url("../img/ts3_viewer/input-muted.png");
+}
+
+/* speaker muted client */
+.tswv-client-output-muted
+{
+    background-image: url("../img/ts3_viewer/output-muted.png");
+}
+
+/* hardware mic muted client */
+.tswv-client-input-muted-hardware
+{
+    background-image: url("../img/ts3_viewer/hardware-input-muted.png");
+}
+
+/* hardware speaker muted client */
+.tswv-client-output-muted-hardware
+{
+    background-image: url("../img/ts3_viewer/hardware-output-muted.png");
+}
+
+/* away client */
+.tswv-client-away
+{
+    background-image: url("../img/ts3_viewer/client-away.png");
+}
+
+/* Client with priority speaker */
+.tswv-client-priority-speaker
+{
+    background-image: url("../img/ts3_viewer/client-priority-speaker.png");
+}
+
+/* Client with granted talkpower */
+.tswv-client-talkpower-granted
+{
+    background-image: url("../img/ts3_viewer/client-talkpower-granted.png");
+}
+
+/* Query Clients */
+.tswv-client-query
+{
+    background-image: url("../img/ts3_viewer/client-query.png");
+}
+
+
+/* Spacer */
+/* General */
+.tswv-spacer
+{
+    margin: 0px;
+}
+
+/* right spacer */
+.tswv-spacer-right
+{
+    text-align: right;
+}
+
+/* left spacer */
+.tswv-spacer-left
+{
+    text-align: left;
+}
+
+/* center spacer */
+.tswv-spacer-center
+{
+    text-align: center;
+}
+
+/* ___ */
+.tswv-spacer-line
+{
+    background: url(../img/ts3_viewer/linie.png) repeat-x;
+}
+
+/* --- */
+.tswv-spacer-dash
+{
+    background: url(../img/ts3_viewer/bs.png) repeat-x;
+}
+
+/* -.- */
+.tswv-spacer-line-point
+{
+    background: url(../img/ts3_viewer/bspunkt.png) repeat-x;
+}
+
+/* -.. */
+.tswv-spacer-line-double-point
+{
+    background: url(../img/ts3_viewer/bsdpunkt.png) repeat-x;
+}
+
+/* ... */
+.tswv-spacer-point
+{
+    background: url(../img/ts3_viewer/punkt.png) repeat-x;
+}
+
+/* repeat spacer */
+.tswv-spacer-overflow
+{
+    width: inherit;
+    overflow: hidden;
+}
+
+
+
