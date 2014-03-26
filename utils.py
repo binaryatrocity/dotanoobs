@@ -1,6 +1,10 @@
 import requests
 import re
 from time import strptime, strftime, gmtime
+from bs4 import BeautifulSoup
+from itertools import product
+from os import path, makedirs
+
 from calendar import timegm
 from app import app, cache
 from teamspeak import create_teamspeak_viewer, getTeamspeakWindow, ISO3166_MAPPING
@@ -10,13 +14,36 @@ def get_steam_userinfo(steam_id):
 		'key': app.config['DOTA2_API_KEY'],
 		'steamids': steam_id
 	}
-	data = requests.get('http://api.steampowered.com/ISteamUser/' \
-						'GetPlayerSummaries/v0001/', params=options).json()
+	data = requests.get('http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0001/', params=options).json()
 	return data['response']['players']['player'][0] or {}
+
+def get_api_hero_data():
+    data = requests.get("https://api.steampowered.com/IEconDOTA2_570/GetHeroes/v0001/?key="+app.config['DOTA2_API_KEY']+"&language=en_us").json()
+    return data
+
+API_DATA = get_api_hero_data()
+
+def complete_hero_data(key, value):
+    # Possible keys are id, localized_name and name
+    for hero_data in API_DATA['result']['heroes']:
+        if hero_data[key] == value: return hero_data
+
+def get_hero_data_by_id(hero_id):
+    return API_DATA['result']['heroes'][hero_id-1]
+
+def parse_valve_heropedia():
+    data = requests.get('http://www.dota2.com/heroes/')
+    soup = BeautifulSoup(data.text)
+    taverns = []
+    tavern_names = [' '.join(entry) for entry in product(('Radiant', 'Dire'), ('Strength', 'Agility', 'Intelligence'))]
+    for tavern_name, tavern in zip(tavern_names, soup.find_all(class_=re.compile('^heroCol'))):
+        img_base = lambda tag: tag.name == 'img' and 'base' in tag.get('id')
+        taverns.append((tavern_name, [complete_hero_data('name', 'npc_dota_hero_%s' % tag['id'].replace('base_', '')) for tag in tavern.find_all(img_base)]))
+    return taverns
 
 # For Templates
 @app.template_filter('shorten')
-def shorten_filter(s, num_words=20):
+def shorten_filter(s, num_words=40):
 	space_iter = re.finditer('\s+', s)
 	output = u''
 	while num_words > 0:
@@ -30,6 +57,7 @@ def shorten_filter(s, num_words=20):
 
 @app.context_processor
 def utility_processor():
+    ''' For Teamspeak '''
     @cache.memoize(60*5)
     def ts3_viewer():
         html = create_teamspeak_viewer()[0]
@@ -63,6 +91,38 @@ def utility_processor():
         for key, name in ISO3166_MAPPING.iteritems():
             mapping[key.lower()] = ' '.join([word.capitalize() for word in name.split(' ')])
         return mapping
+    ''' Dota2 info '''
+    def total_hero_pool():
+        return len(API_DATA['result']['heroes'])
+    def hero_image_large(hero_data):
+        if type(hero_data) is unicode:
+            stripped_name = hero_data.replace('npc_dota_hero_', '')
+        else:
+            stripped_name = hero_data['name'].replace('npc_dota_hero_', '')
+        img_file = path.join(app.config['HERO_IMAGE_PATH'], stripped_name + '.png')
+        img_src = path.join(app.root_path, app.static_folder, img_file)
+        if not path.exists(img_src):
+            i = requests.get('http://media.steampowered.com/apps/dota2/images/heroes/{}_hphover.png'.format(stripped_name)).content
+            if not path.exists(path.split(img_src)[0]):
+                makedirs(path.split(img_src)[0])
+            with open(img_src, 'wb') as img:
+                img.write(i)
+        return img_file
+    def hero_image_small(hero_data):
+        if type(hero_data) is unicode:
+            stripped_name = hero_data.replace('npc_dota_hero_', '')
+        else:
+            stripped_name = hero_data['name'].replace('npc_dota_hero_', '')
+        img_file = path.join(app.config['HERO_IMAGE_PATH'], stripped_name + '_small.png')
+        img_src = path.join(app.root_path, app.static_folder, img_file)
+        if not path.exists(img_src):
+            i = requests.get('http://media.steampowered.com/apps/dota2/images/heroes/{}_sb.png'.format(stripped_name)).content
+            if not path.exists(path.split(img_src)[0]):
+                makedirs(path.split(img_src)[0])
+            with open(img_src, 'wb') as img:
+                img.write(i)
+        return img_file
+    ''' Misc '''
     def timestamp_to_js_date(timestamp):
         return strftime('%B %d, %Y %H:%M:%S UTC', gmtime(timestamp))
     def js_date_to_timestamp(date):
@@ -70,4 +130,5 @@ def utility_processor():
     return dict(ts3_viewer=ts3_viewer, ts3_current_clients=ts3_current_clients, get_teamspeak_window=get_teamspeak_window, \
             ts3_active_clients=ts3_active_clients, timestamp_to_js_date=timestamp_to_js_date, js_date_to_timestamp=js_date_to_timestamp, \
             num_unique_clients_by_country=num_unique_clients_by_country, country_abbreviation_mapping=country_abbreviation_mapping, \
-            ts3_countries_active=ts3_countries_active)
+            ts3_countries_active=ts3_countries_active, hero_image_large=hero_image_large, hero_image_small=hero_image_small, \
+            heropedia=parse_valve_heropedia, total_hero_pool=total_hero_pool)

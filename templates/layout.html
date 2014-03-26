@@ -10,6 +10,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
         <!-- CSS includes -->
+        <!--<link rel="stylesheet" href="{{ url_for('static', filename='css/uikit.min.css') }}" />-->
         <link rel="stylesheet" href="{{ url_for('static', filename='css/uikit.gradient.min.css') }}" />
         <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}" />
 
@@ -22,36 +23,18 @@
         <nav class="uk-navbar uk-navbar-attached" data-uk-navbar>
         <a href="#offcanvas" class="uk-navbar-brand uk-hidden-large" data-uk-offcanvas><img src="{{ url_for('static', filename='img/navlogo.png') }}" /><i class="uk-icon-double-angle-down"></i></a>
         <a href="" class="uk-navbar-brand uk-visible-large" data-uk-offcanvas><img src="{{ url_for('static', filename='img/navlogo.png') }}" /></a>
-        {#    /* In header drop-down navigation, possibly reenable as static "you are here" marker  */
-        <ul class="uk-navbar-nav">
-            <li data-uk-dropdown="" class="uk-parent">
-            <a href="{{ url_for('main') }}"><i class="uk-icon-home"></i> Home</a>
-            <div class="uk-dropdown uk-dropdown-navbar">
-                <ul class="uk-nav uk-nav-navbar">
-                    <li><a href="http://board.dotanoobs.com">Board</a></li>
-                    <li><a href="{{ url_for('teamspeak') }}">TeamSpeak</a></li>
-                    <li class="uk-nav-header">Doobs</li>
-                    <li><a href="{{ url_for('doobs_stuff.list_events') }}">Events</a></li>
-                    <li><a href="{{ url_for('doobs_stuff.ladder') }}">Ladder</a></li>
-                </ul>
-            </div>
-            </li>
-        </ul>
-        #}
         <!-- Check if user is logged in -->
         {% if g.user %}
         <ul class="uk-navbar-nav uk-navbar-flip">
             <li data-uk-dropdown="" class="uk-parent">
-            <a href="#"><img class="uk-responsive-height" src="{{ g.user.avatar
-                }}" /> {{ g.user.nickname }} </a>
+            <a href="#"><img class="uk-responsive-height" src="{{ g.user.avatar }}" /> {{ g.user.nickname }} </a>
             <div class="uk-dropdown uk-dropdown-navbar">
                 <ul class="uk-nav uk-nav-navbar">
-                    {#
-                    <li><a href="{{ url_for('doobs_stuff.doob_summary', playerid=g.doob._id) }}">Profile</a></li>
-                    <li><a href="{{ url_for('doobs_stuff.doob_random', playerid=g.doob._id) }}">A-Z Challenge</a></li>
-                    <!--<li class="uk-disabled"><a href="">Recent Events</a></li>-->
+                    <li><a href="{{ url_for('user_profile', userid=g.user.id) }}">Profile</a></li>
+                    <li><a href="{{ url_for('user_random_hero', userid=g.user.id) }}">A-Z Challenge</a></li>
+                    <li><a href="http://board.dotanoobs.com/?page=lastposts">Latest Posts</a></li>
                     <li class="uk-nav-divider"></li>
-                    #}
+                    <li><a href="{{ url_for('user_settings', userid=g.user.id) }}">Settings</a></li>
                     <li><a href="{{ url_for('logout') }}">Logout</a></li>
                 </ul>
            </div>
@@ -65,10 +48,10 @@
         <!-- Flash Error Messages -->
         {% with messages = get_flashed_messages() %}
         {% if messages %}
-        <ul class="flashes">
+        <ul class="flashes uk-width-1-3 uk-container-center">
             <a href="" class="uk-alert-close uk-close"></a>
             {% for message in messages %}
-            <li class="uk-alert uk-alert-danger">{{ category }}:{{ message }}</li>
+            <li class="uk-alert uk-alert-danger">{{ message }}</li>
             {% endfor %}
         </ul>
         {% endif %}
@@ -79,12 +62,12 @@
             <!-- Big top logo -->
             <div class="uk-width-1-1"><img class="uk-align-center" id="biglogo" src="{{ url_for('static', filename='img/biglogo.png') }}"></div>
             <!-- Side navigation -->
-            <div class="uk-visible-large uk-width-1-5 uk-panel uk-panel-box">
+            <div class="uk-visible-large uk-width-1-5 uk-panel">
                 {% if g.doob%}
                 <h3 class="uk-panel-title">{{ g.doob.name }}</h3>
                 <hr class="uk-nav-divider" />
                 {% endif %}
-                <ul class="uk-nav uk-nav-side">
+                <ul class="uk-nav uk-nav-side uk-text-right uk-nav-parent-icon" data-uk-nav>
                     {% include 'sidenav.html'  %}
                 </ul>
             </div>

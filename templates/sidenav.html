@@ -2,13 +2,19 @@
     ('index', 'Home'),
     ('friends', 'Friends'),
     ('list_events', 'Events'),
-    ('community', 'Community'),
-    ('ladder', 'Ladder'),
+    ('teamspeak', 'TS3 Stats'),
     ] %}
     <li{% if endpoint == request.endpoint %} class='uk-active' {% endif %}>
     <a href="{{ url_for(endpoint) }}">{{ title }}</a>
     </li>
     {% endfor %}
+    <li class="uk-parent">
+        <a href="#">Stream Stats</a>
+        <ul class="uk-nav-sub">
+            <li><a href="http://potatr.dotanoobs.com">Potato_Bot</a></li>
+            <li><a href="http://potatr.dotanoobs.com">Cider_Bot</a></li>
+        </ul>
+    </li>
     <li class="uk-nav-divider"></li>
     <li class="uk-nav-header">Social</li>
     <li><a href="http://board.dotanoobs.com"><i class="uk-icon-group"> Board</i></a></li>
@@ -20,6 +26,6 @@
     <li><a href="{{ url_for('login') }}"><i class="uk-icon-cog"> Register</i></a></li>
     {% else %}
     <li {% if request.endpoint == 'user_profile' %} class='uk-active' {% endif %}><a href="{{ url_for('user_profile', userid=g.user.id) }}"><i class="uk-icon-home"> Profile</i></a></li>
-    <li><a href="{{ url_for('user_profile', userid=g.user.id) }}"><i class="uk-icon-cog"> Settings</i></a></li>
+    <li><a href="{{ url_for('user_settings', userid=g.user.id) }}"><i class="uk-icon-cog"> Settings</i></a></li>
     <li><a href="{{ url_for('logout') }}"><i class="uk-icon-off"> Logout</i></a></li>
     {% endif %}

@@ -4,29 +4,38 @@
 
 {% block content %}
 <div class="uk-grid" data-uk-grid-margin>
-    <div class="uk-width-1-1 uk-panel">
-        <img class="uk-align-center" src="{{ user.avatar }}" />
-        <h2 class="uk-panel-title uk-text-center">Profile for {{ user.nickname }}</h2>
+    <div class="uk-width-2-3">
+        <h2 class="uk-float-left"><img class="" src="{{ user.avatar }}" />&nbsp;{{ user.nickname }}</h2>
+    </div>
+    <div class="uk-width-1-3 uk-text-center">
+        <a href="http://steamcommunity.com/profiles/{{ user.steam_id | safe }}">Steam</a> | 
+        <a href="http://board.dotanoobs.com/?page=profile&id={{ user.id | safe }}">Forum Profile</a> |
+        <a href="http://dotabuff.com/search?q={{ user.steam_id }}">Dotabuff</a>
     </div>
     <!--Main content area -->
     <div class="uk-width-large-2-3 uk-width-medium-1-1 uk-panel">
-        <div class="uk-panel">
-            main content area
-        </div>
+        {% if user.bio_text == None %}
+        <em class="uk-text-danger">This user's profile bio is empty!</em>
+        {% else %}
+        <em class="uk-text-bold">{{ user.bio_text }}</em>
+        {% endif %}
+        {% if user.id == g.user.id %}&nbsp;<a href="{{ url_for('user_settings')}}"><i class="uk-icon-edit"></i></a>{% endif %}
     </div>
     <!-- Side bar -->
-    <div class="uk-width-large-1-3 uk-width-medium-1-1 uk-panel uk-panel-box">
-        <ul>
-            <li>Points [value]</li>
-            <li><a href="http://board.dotanoobs.com/?page=profile&id={{ user.id | safe }}">Forum Profile</a>
-            <li>Last seen on TeamSpeak: [value]<li>
-        </ul>
-        <hr class="uk-panel-divider" />
+    <div class="uk-width-large-1-3 uk-width-medium-1-1 uk-panel uk-panel-box uk-panel-box-secondary">
         <div class="uk-container-center uk-text-center">
-            Randomstats
-            <span>Current Hero</span>
-            Heroimg
+            <span class="uk-text-bold">Current Hero</span><br/>
+            <span>{{ user.random_hero['localized_name'] }}</span><br/>
+            <a href={{ url_for('user_random_hero', userid=user.id) }}>
+                <img src="{{ url_for('static', filename=hero_image_large(user.random_hero)) }}" class="dn-hero-icon" /><br/>
+                <span>View A-Z Progress</span>
+            </a>
         </div>
+        <ul class="uk-list uk-list-space uk-list-striped">
+            <li>Points: <span id='points_total'>0</span></li>
+            <li>Last Seen: <span id='date'></span></li>
+            <li>Heroes Randomed: <span id='rands'>{{ user.random_heroes.completed | length }}</span></li>
+        </ul>
     </div>
 </div>
 {% endblock %}

@@ -3,4 +3,4 @@ __pycache__/
 *.py[cod]
 
 *.so
-
+static/img/hero-images/*.png

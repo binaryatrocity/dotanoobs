@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/heropedia.css') }}" >
+{% endblock %}
+
+{% block title %} A-Z Challenge: {{ user.nickname }}{% endblock %}
+
+{% block content %}
+{% set taverns = heropedia() %}
+<h2 class="uk-text-center">{{ user.nickname }}'s A-Z Challenge</h2>
+<hr />
+<div class="uk-grid">
+    <div class="uk-width-large-1-3 uk-width-medium-1-1 uk-panel uk-text-center uk-margin-bottom">
+        <h3 class="uk-panel-title">Current Hero</h3>
+        <h4 class="uk-text-bold uk-margin-remove">{{ user.random_hero['localized_name'] }}</h4>
+        <img src="{{ url_for('static', filename=hero_image_large(user.random_hero)) }}" class="dn-hero-icon" />
+
+        <p>
+            <span id="heroes_completed">Heroes Completed: {{ user.random_heroes.completed | length }}</span><br/>
+            <span id="heroes_left">Heroes Left: {{ total_hero_pool() - user.random_heroes.completed|length }}</span>
+            </span>
+        </p>
+
+        {% if g.user and g.user.steamid == user.steamid %}
+        <form action="{{ url_for('user_random_hero', userid=g.user.id) }}" method="post" id="random_form" class="uk-margin">
+            <input type="checkbox" name="completed" id="completed_checkbox" style="display:none;">
+            <input type="checkbox" name="skip" id="skip_checkbox" style="display:none;">
+            <a class="uk-button uk-button-success" id="completed_button">Completed!</a>
+            <a class="uk-button uk-button-primary" id="skip_button">Skip</a>
+        </form>
+        {% endif %}
+    </div>
+    <div class="uk-width-large-2-3 uk-width-medium-1-1 uk-panel uk-text-center uk-margin">
+        <div class="uk-badge uk-panel-badge uk-badge-notification uk-badge-success">x1</div>
+        <h3 class="uk-panel-title">Completed</h3>
+        {% for hero in user.random_heroes.completed %}
+            <img src="{{ url_for('static', filename=hero_image_small(hero)) }}" class="dn-hero-icon" />
+        {% endfor %}
+        <br/><br/>
+        <br/><br/>
+    </div>
+    <div class="uk-width-large-2-3 uk-width-medium-1-1 uk-container-center">
+        <ul class="uk-tab" data-uk-tab="{connect:'#taverns'}">
+            <li class="uk-active"><a href="">Strength</a></li>
+            <li><a href="">Agility</a></li>
+            <li><a href="">Intelligence</a></li>
+        </ul>
+        <ul id="taverns" class="uk-switcher uk-margin">
+            <li><div class="uk-panel tavern">
+                <label id="tavernStrength">Strength</label>
+                {% for hero in taverns[0][1] + taverns[3][1] %}
+                <img class="{{hero['name'] in user.random_completed and 'filterUnmatchedHero' or 'filterMatchedHero' }}" id="{{ hero['name'] }}" src="{{ url_for('static', filename=hero_image_small(hero)) }}" />
+                {% endfor %}
+            </div></li>
+            <li><div class="uk-panel tavern">
+                <label id="tavernAgility">Agility</label>
+                {% for hero in taverns[1][1] + taverns[4][1] %}
+                <img class="{{hero['name'] in user.random_completed and 'filterUnmatchedHero' or 'filterMatchedHero' }}" id="{{ hero['name'] }}" src="{{ url_for('static', filename=hero_image_small(hero)) }}" />
+                {% endfor %}
+            </div> </li>
+            <li><div class="uk-panel tavern">
+                <label id="tavernIntelligence">Intelligence</label>
+                {% for hero in taverns[2][1] + taverns[5][1] %}
+                <img class="{{hero['name'] in user.random_completed and 'filterUnmatchedHero' or 'filterMatchedHero' }}" id="{{ hero['name'] }}" src="{{ url_for('static', filename=hero_image_small(hero)) }}" />
+                {% endfor %}
+            </div> </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% if g.user and g.user.id == user.id %}
+{% block pagescripts %}
+<script>
+$(document).ready(function() {
+        $('#completed_button').click( function() {
+                $('#completed_checkbox').attr('checked', true);
+                $('#random_form').submit();
+        });
+        $('#skip_button').click( function() {
+                $('#skip_checkbox').attr('checked', true);
+                $('#random_form').submit();
+        });
+});
+</script>
+{% endblock %}
+{% endif %}

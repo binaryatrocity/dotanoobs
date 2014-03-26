@@ -6,14 +6,9 @@ body {
     margin: 1em auto 6em;
 }
 #biglogo {
-    width:75%;
-}
-.dark-panel {
-    background: -moz-linear-gradient(center top, #222222 0%, #313331 100%);
-    border: 5px solid #999999;
-    border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
-    color: #fff;
+    width:65%;
+    max-width:650px;
+    min-width:250px;
 }
 .uk-navbar-brand > img, .uk-navbar-flip > img {
     height:35px;
@@ -57,4 +52,31 @@ footer {
 
 #streams-online > .uk-article > a > h4 {
     margin:0px;
+}
+#tsviewer > .uk-modal-dialog {
+    max-height: 80%;
+    overflow-y: scroll;
+}
+
+.ts_num {
+    color: #D9A859;
+}
+.dn-streamer, .dn-streamer-offline {
+    display: inline-block;
+    width: 110px;
+    padding: 5px;
+    margin: 5px;
+}
+.dn-streamer-offline > img {
+    height:50px;
+}
+
+.dn-streamer-hover {
+    background:red;
+}
+
+.dn-hero-icon {
+    background:#000;
+    padding:4px;
+    margin:2px;
 }

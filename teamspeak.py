@@ -8,10 +8,10 @@ from flask import url_for
 from bs4 import BeautifulSoup
 
 from app import app
-from models import TeamspeakData
 
 def getTeamspeakWindow(window=605800):
     current_time = time.time()
+    from models import TeamspeakData
     return TeamspeakData.query.filter(TeamspeakData.time < current_time, TeamspeakData.time > current_time-window).order_by(TeamspeakData.time).all()
 
 def create_teamspeak_viewer():
@@ -159,8 +159,11 @@ def create_teamspeak_viewer():
             return "error: %s" % inst
 
 def get_ISO3166_mapping():
-    data = requests.get('http://www.iso.org/iso/home/standards/country_codes/country_names_and_code_elements_xml.html')
-    xml = ElementTree.fromstring(data.text.encode('utf-8'))
+    #data = requests.get(url_for('static', filename='country_codes.xml'))
+    #xml = ElementTree.fromstring(data.text.encode('utf-8'))
+    with open('app/static/country_codes.xml', mode='r') as d:
+        data = d.read()
+    xml = ElementTree.fromstring(data)
     d = dict()
     for entry in xml.findall('ISO_3166-1_Entry'):
         d[entry.find('ISO_3166-1_Alpha-2_Code_element').text] = entry.find('ISO_3166-1_Country_name').text
