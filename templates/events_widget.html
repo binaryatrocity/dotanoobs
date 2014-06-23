@@ -1,0 +1,18 @@
+{% if active_events %}
+    <h1 class="uk-panel-title">Active Events</h1>
+    <dl class="uk-description-list uk-description-list-line">
+    {% for event in active_events %}
+            <dt><a href="{{ url_for('show_event', eventid=event.id) }}">{{ event.name }}</a> {{ event.type | event_badge | safe }}</dt>
+            <dd> Ends at <span class="date">{{ event.start_time | js_datetime }}</span> </dd>
+    {% endfor %}
+    </dl>
+{% endif %}
+{% if upcoming_events %}
+    <h1 class="uk-panel-title">Upcoming Events</h1>
+    <dl class="uk-description-list uk-description-list-line">
+    {% for event in upcoming_events %}
+            <dt><a href="{{ url_for('show_event', eventid=event.id) }}">{{ event.name }}</a> {{ event.type | event_badge | safe }}</dt>
+            <dd> Starts at <span class="date">{{ event.start_time | js_datetime }}</span> </dd>
+    {% endfor %}
+    </dl>
+{% endif %}

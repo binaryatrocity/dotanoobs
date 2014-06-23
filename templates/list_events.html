@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+
+{% block title %}Events - DotaNoobs {% endblock %}
+
+{% block content %}
+<div class="uk-grid" data-uk-grid-margin>
+    <div class="uk-width-1-1">
+        <h2 class="">Events</h2>
+    </div>
+    <!--Main content area -->
+    <div class="uk-width-1-1 uk-panel">
+        <ul class="uk-tab" data-uk-tab="{connect:'#events_table'}">
+            <li class="uk-active"><a href="">Active</a></li>
+            <li><a href="">Upcoming</a></li>
+            <li><a href="">Expired</a></li>
+        </ul>
+        <ul id="events_table" class="uk-switcher uk-margin">
+            <li>
+                <table class='uk-table uk-table-hover'>
+                    <thead>
+                        <th>Event</th>
+                        <th>Type</th>
+                        <th>Points</th>
+                        <th>Starts</th>
+                        <th>Ends</th>
+                    </thead>
+                    <tbody>
+                        {% for event in active %}
+                        <tr url="{{ url_for('show_event', eventid=event.id) }}">
+                            <td>{{ event.name }}</td>
+                            <td>{{ event.type | event_badge | safe }}</td>
+                            <td>{{ event.points }}</td>
+                            <td class='date'>{{ event.start_time | js_datetime }}</td>
+                            <td class='date'>{{ event.end_time | js_datetime }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </li>
+            <li>
+                <table class='uk-table uk-table-hover'>
+                    <thead>
+                        <th>Event</th>
+                        <th>Type</th>
+                        <th>Points</th>
+                        <th>Starts</th>
+                        <th>Ends</th>
+                    </thead>
+                    <tbody>
+                        {% for event in upcoming %}
+                        <tr url="{{ url_for('show_event', eventid=event.id) }}">
+                            <td>{{ event.name }}</td>
+                            <td>{{ event.type | event_badge | safe }}</td>
+                            <td>{{ event.points }}</td>
+                            <td class='date'>{{ event.start_time | js_datetime }}</td>
+                            <td class='date'>{{ event.end_time | js_datetime }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </li>
+            <li>
+                <table class='uk-table uk-table-hover'>
+                    <thead>
+                        <th>Event</th>
+                        <th>Type</th>
+                        <th>Points</th>
+                        <th>Starts</th>
+                        <th>Ends</th>
+                    </thead>
+                    <tbody>
+                        {% for event in expired %}
+                        <tr url="{{ url_for('show_event', eventid=event.id) }}">
+                            <td>{{ event.name }}</td>
+                            <td>{{ event.type | event_badge | safe }}</td>
+                            <td>{{ event.points }}</td>
+                            <td class='date'>{{ event.start_time | js_datetime }}</td>
+                            <td class='date'>{{ event.end_time | js_datetime }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+{% block pagescripts %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.13.3/jquery.tablesorter.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#events_table table thead th').prepend("<i class='uk-icon-sort uk-display-inline'>  </i>");
+        $('#events_table table').tablesorter();
+        $('#events_table table tbody tr').click(function() {
+            window.location = $(this).attr('url');
+        });
+    });
+</script>
+{% endblock %}

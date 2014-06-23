@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}Event - {{ event.name }}{% endblock %}
+
+{% block content %}
+<div class="uk-grid" data-uk-grid-margin>
+    <div class="uk-width-2-3">
+        <div class="uk-panel">
+            <h2 class="uk-float-left uk-width-1-1">{{ event.name }}</h2>
+            Event Type: &nbsp;{{ event.type | event_badge | safe }}
+        </div>
+    </div>
+    <div class="uk-width-1-3 uk-text-center">
+        {% if g.user.admin %}
+        <a class="uk-button" href="{{ url_for('event_edit', eventid=event.id) }}">Edit</a>
+        <a class="uk-button" href="{{ url_for('event_delete', eventid=event.id) }}">Delete</a>
+        {% endif %}
+    </div>
+    <!--Main content area -->
+    <div class="uk-width-large-2-3 uk-width-medium-1-1 uk-panel">
+        {% if event.desc == None %}
+        <em class="uk-text-danger">This event has no description.</em>
+        {% else %}
+        <em class="uk-text-bold">{{ event.desc }}</em>
+        {% endif %}
+        {% if g.user.admin %}&nbsp;<a href="{{ url_for('user_settings')}}"><i class="uk-icon-edit"></i></a>{% endif %}
+    </div>
+    <!-- Side bar -->
+    <div class="uk-width-large-1-3 uk-width-medium-1-1 uk-panel">
+        <table class="uk-table uk-table-striped uk-table-hover uk-text-right">
+            <h2 class="uk-text-center">Information</h2>
+            <tbody>
+                <tr>
+                    <td>This event is worth <span id='points'>{{ event.points }}</span> points a tick. </td>
+                    <td><i class="uk-icon-money"></i></td>
+                </tr>
+                <tr>
+                    <td>Payout every <span id='reward'>{{ event.reward_threshold }}</span> minutes (1 tick). </td>
+                    <td><i class="uk-icon-clock-o"></i></td>
+                </tr>
+                <tr>
+                    <td>Starting at <span class='date'>{{ event.start_time | js_datetime }}</span></td>
+                    <td><i class="uk-icon-calendar"></i></td>
+                </tr>
+                <tr>
+                    <td>Ending at <span class='date'>{{ event.end_time | js_datetime }}</span></td>
+                    <td><i class="uk-icon-warning"></i></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
