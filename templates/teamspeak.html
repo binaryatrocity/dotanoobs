@@ -13,9 +13,9 @@
         <h3 class="uk-text-bold uk-text-center">Recent Activity</h3>
         <div class="uk-panel">
             <ul>
-                <li>Active users connected: <span id="unique_clients"></span></li>
-                <li>Total users connected:  <span id="current_clients">{{ ts3_current_clients() }}</span></li>
-                <li>Countries active on server: <span id="country_clients"></span></li>
+                <li>Users currently connected:  <span id="current_clients"></span></li>
+                <li>Unique users this week: <span id="unique_clients"></span></li>
+                <li>Countries active this week: <span id="country_clients"></span></li>
         </div>
         <div class="uk-panel" id="teamspeak_active_users"></div>
         <div class="uk-panel" id="teamspeak_map"></div>
@@ -38,13 +38,14 @@
 {% block pagescripts %}
 {% cache 60*5 %}
 {% set teamspeak_data = get_teamspeak_window() %}
-<script src="http://code.highcharts.com/3.0.1/highcharts.js"></script>
-<script type="text/javascript" src="http://github.highcharts.com/75c66eb3/modules/map.src.js"></script>
-<script type="text/javascript" src="http://github.highcharts.com/75c66eb3/modules/data.src.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highcharts/3.0.7/highcharts.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highcharts/3.0.7/modules/map.src.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highcharts/3.0.7/modules/data.src.js"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/world-map-shapes.js') }}"></script>
 <script>
 $(document).ready(function() {
 	$('#unique_clients').html("{{ ts3_active_clients(teamspeak_data) }}");
+	$('#current_clients').html("{{ ts3_current_clients() }}");
 	$('#country_clients').html("{{ ts3_countries_active(teamspeak_data) }}");
 	Highcharts.setOptions({
 		global: {
@@ -90,7 +91,7 @@ $(document).ready(function() {
 			type: 'areaspline',
 			data: [
 				{% for data in teamspeak_data %}
-					[new Date('{{ timestamp_to_js_date(data.time) }}').valueOf(), {{ data.clients | count }}],
+                                        [new Date('{{ data.time | js_datetime }}').valueOf(), {{ data.clients | count }}],
 				{% endfor %}
 			],
 		}],
@@ -155,7 +156,7 @@ $(document).ready(function() {
 		map_options.series[0].data.push({
 			y: num,
 			name: country_names[key],
-			path: Highcharts.pathToArray(shapes[key]),
+			path: shapes[key],
 			states: {
 				hover: {
 					color: '#FF7F00'

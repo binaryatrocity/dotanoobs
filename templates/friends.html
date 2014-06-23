@@ -16,7 +16,7 @@
     </div>
     <div class="uk-width-large-1-2 uk-width-medium-1-1 uk-text-center uk-panel botpad">
         <h2>Internet Friendlies:</h2>
-        <p>DotA related websites worth the occasional visit. We know they are no DotaNoobs, but we set a pretty high quality standard.</p>
+        <p>DotA related websites worth the occasional visit. We know they are no DotaNoobs, but we set a pretty high quality standard around here.</p>
         <ul>
             <li><a href="http://www.reddit.com/r/DotA2/">Reddit's r/dota2</a></li>
             <li><a href="http://www.dotainsight.com">DotaInsight Podcast</a></li>
@@ -26,10 +26,7 @@
     </div>
     <div class="uk-width-large-1-2 uk-width-medium-1-1 uk-text-center uk-panel">
         <h2>Streams We Like</h2>
-        <ul id="streams-online">
-        </ul>
-        <hr id="stream-divider" class="uk-article-divider" style="display:none;" />
-        <ul id="streams-offline">
+        <ul id="streams">
         </ul>
     </div>
 </div>
@@ -38,34 +35,49 @@
 {% block pagescripts %}
 <script>
 $(document).ready(function() {
+        {% cache 60*5 %}
 	// Add the streams
 	var stream_url = "https://api.twitch.tv/kraken/streams/";
-	var channels = ["sheevergaming", "purgegamers", "synderen", "luminousinverse", "lddota"]
+	var channels = ["2gd", "purgegamers", "synderen", "luminousinverse", "thegdstudio"]
 	for (var idx in channels) {
 		$.getJSON(stream_url+channels[idx]+"?callback=?", function(data) {
-			if (data.stream) {
-				$('#streams-online').append("<article class='uk-article' id='" + data.stream.channel.name + "'>");
-				var jquery_selector = '#'+data.stream.channel.name;
-                                $(jquery_selector).append("<a href='"+data.stream.channel.url+"'><h4>" + data.stream.channel.display_name + "</h4></a>")
-				var span_text = "<p class='uk-article-meta'>";
-				span_text = span_text + "Playing: " + data.stream.game  + "<br />";
-				span_text = span_text + "Viewers: " + data.stream.viewers + "<br />";
-				span_text = span_text + "</p>";
-				$(jquery_selector).append(span_text);
-				$(jquery_selector).append("<img src='" + data.stream.preview.medium + "' class='' />")
-				$('#streams-online').append("</article>");
-                                $('#stream-divider').show();
-			} else {
-				$.getJSON(data._links.channel+"?callback=?", function(data) {
-					$('#streams-offline').append("<article class='uk-article' id='" + data.name + "'>");
-                                        $('#'+data.name).append("<a href='"+data.url+"'><h4>" + data.display_name + "</h4></a>");
-					$('#'+data.name).append("<img src='" + data.logo + "' style='float: right;' width='62' height='62' /><br />");
-					$('#'+data.name).append("<p class='uk-article-meta'><strong>Offline</strong></p>");
-					$('#streams-offline').append("</div>");
-				});
-			}
+                    if (data.stream) {
+                        var $a = $("<a href='"+data.stream.channel.url+"'></a>");
+                        var $strm = $("<div class='dn-streamer uk-text-success uk-panel uk-panel-box' id='"+data.stream.channel.name+"'></div>");
+
+                        $strm.append("<p class='uk-text-bold'>" + data.stream.channel.display_name + "</p>");
+                        $strm.append("<img src='" + data.stream.preview.small + "' />");
+                        $strm.append("<p><i class='uk-icon-male'></i> "+data.stream.viewers+"</p>");
+
+                        $a.append($strm);
+                        $("#streams").prepend($a);
+
+                    } else {
+                        $.getJSON(data._links.channel+"?callback=?", function(data) {
+                            var $a = $("<a href='"+data.url+"'></a>");
+                            var $strm = $("<div class='dn-streamer-offline uk-text-success uk-panel uk-panel-box' id='"+data.name+"'></div>");
+
+                            $strm.append("<p class='uk-text-bold'>" + data.display_name + "</p>");
+                            $strm.append("<img src='" + data.logo + "' />");
+                            $strm.append("<p class='dn-offline'>Offline</p>");
+
+                            $a.append($strm);
+                            $("#streams").append($a);
+                        });
+                    }
 		});
         }
+        {% endcache %}
+
+        
+        $("#streams").on({
+            mouseover: function() {
+                $(this).addClass('dn-streamer-hover');
+            },
+            mouseleave: function() {
+                $(this).removeClass('dn-streamer-hover');
+            }
+        }, "div");
 });
 </script>
 {% endblock %}

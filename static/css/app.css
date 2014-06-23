@@ -50,9 +50,6 @@ footer {
     padding-bottom:80px;
 }
 
-#streams-online > .uk-article > a > h4 {
-    margin:0px;
-}
 #tsviewer > .uk-modal-dialog {
     max-height: 80%;
     overflow-y: scroll;
@@ -63,20 +60,41 @@ footer {
 }
 .dn-streamer, .dn-streamer-offline {
     display: inline-block;
-    width: 110px;
-    padding: 5px;
-    margin: 5px;
+    width: 105px;
+    padding: 2px;
+    margin: 2px;
 }
+
+#streams p.uk-text-bold {
+    font-size: 12px;
+}
+
 .dn-streamer-offline > img {
     height:50px;
 }
 
 .dn-streamer-hover {
-    background:red;
+    background:#CACACA;
 }
 
 .dn-hero-icon {
     background:#000;
     padding:4px;
     margin:2px;
+}
+
+#streams {
+    padding:10px;
+}
+
+#events_small > dl.uk-description-list-line > dt, #events_large > dl.uk-description-list-line > dt {
+    border-top: none;
+}
+
+#events_small .uk-badge, #events_large .uk-badge {
+    float:right;
+}
+
+#profile_links > a {
+    font-size:14px;
 }

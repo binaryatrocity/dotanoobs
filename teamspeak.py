@@ -1,18 +1,34 @@
+from flask import url_for
+
 import operator
 import os
 import ts3
-import time
 import requests
+from datetime import datetime, timedelta
 from xml.etree import ElementTree
-from flask import url_for
 from bs4 import BeautifulSoup
 
-from app import app
+from app import app, db
 
-def getTeamspeakWindow(window=605800):
-    current_time = time.time()
+def getTeamspeakWindow(window=timedelta(weeks=1)):
+    current_time = datetime.utcnow()
     from models import TeamspeakData
     return TeamspeakData.query.filter(TeamspeakData.time < current_time, TeamspeakData.time > current_time-window).order_by(TeamspeakData.time).all()
+
+def registerUserTeamspeakId(user, tsid):
+    server = ts3.TS3Server(app.config['TS3_HOST'], app.config['TS3_PORT'])
+    server.login(app.config['TS3_USERNAME'], app.config['TS3_PASSWORD'])
+    server.use(1)
+
+    response = server.send_command('clientdbfind', {'pattern':tsid.encode('utf-8')}, ('uid',))
+    if response.is_successful:
+        cdbid = response.data[0]['cldbid']
+        user.teamspeak_id = tsid
+        sgid = [entry['sgid'] for entry in server.send_command('servergrouplist').data if entry['name'] == 'Normal' and entry['type'] == '1'][0]
+        server.send_command('servergroupaddclient', {'sgid': sgid, 'cldbid': cdbid})
+        db.session.commit()
+        return True
+    return False
 
 def create_teamspeak_viewer():
     try:

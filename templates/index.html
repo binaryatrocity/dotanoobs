@@ -5,32 +5,16 @@
 {% block title %}Dota Noobs{% endblock %}
 
 {% block content %}
-{#{% cache 60*5 %}#}
+{% cache 60*5 %}
 {% set teamspeak_data = get_teamspeak_window() %}
+{% set latest_news = get_latest_news() %}
 <div class="uk-grid">
-    <div class="uk-width-large-1-2 uk-width-medium-1-1 uk-panel uk-panel-space">
-        <h1 class="uk-panel-title">Events</h1>
-        {#
-        {% if active_event %}
-        <article class="uk-article"> 
-            <h4>Right Now</h4>
-            <a href="{{ url_for('event_summary', eventid=active_event._id) }}">{{ active_event.name }}</a>
-            <p class="uk-article-meta">Ends at: {{ timestamp_to_js_date(active_event.end_time) }}</p>
-        </article>
-        {% endif %}
-        {% if upcoming_event %}
-        <article class="uk-article">
-            <h4>Next Event</h4>
-            <a href="{{ url_for('event_summary', eventid=upcoming_event._id) }}">{{ upcoming_event.name }}</a>
-            <p class="uk-article-meta">Starts at: {{ timestamp_to_js_date(upcoming_event.start_time) }}</p>
-        </article>
-        {% else %}
-            <em>No events planned for the near future. Suggest one on the forum!</em>
-        {% endif %}
-        #}
-        <em>No events planned for the near future. Suggest one on the forum!</em>
+
+    <div id="events_large" class="uk-width-1-2 uk-visible-large uk-panel uk-panel-space">
+        {% include "events_widget.html" %}
     </div>
-    <div class="uk-width-large-1-2 uk-width-medium-1-1 uk-panel uk-panel-box uk-text-center">
+
+    <div id="teamspeak" class="uk-width-large-1-2 uk-width-medium-1-1 uk-panel uk-panel-box uk-text-center">
         <a href="#" data-uk-modal="{target: '#tsviewer'}"><div class="uk-badge uk-panel-badge uk-badge-success"><i class="uk-icon-user"></i> Users</div></a>
         <h1 class="uk-panel-title">Teamspeak</h1>
         <div class="uk-grid uk-margin-bottom">
@@ -57,11 +41,15 @@
         </div>
     </div>
 
-    <div id="streams" class="uk-width-1-1 uk-text-center uk-panel uk-panel-space">
+    <div id="events_small" class="uk-width-1-1 uk-hidden-large uk-panel uk-panel-space">
+        {% include "events_widget.html" %}
+    </div>
+    
+    <div id="streams" class="uk-width-1-1 uk-text-center uk-panel">
     </div>
 
-    <div class="uk-width-1-1 uk-panel uk-panel-header">
-        <h4 class="uk-panel-title">News and Announcements</h4>
+    <div class="uk-width-1-1 uk-panel uk-panel-header uk-panel-space">
+        <h1 class="uk-panel-title">News and Announcements</h1>
         {% for news in latest_news %}
             <article class="uk-article dn-news-article">
             <h4 class="uk-article-title" title="{{ news['title'] }}"><a href="{{ news['url'] }}">{{ news['title'] }}</a></h4>
@@ -70,15 +58,22 @@
             </article>
         {% endfor %}
     </div>
+
 </div>
 
-{#{% endcache %}#}
+{% endcache %}
 {% endblock %}
 
 {% block pagescripts %}
 <script>
-{% cache 60*5 %}
 $(document).ready(function() {
+        if ($('#events_large > dl').length < 1) {
+            var msg = "<h2>Events</h2><em>No events planned for the near future. Suggest one on the forum!</em>"
+            $('#events_small').append(msg);
+            $('#events_large').append(msg);
+        }
+
+        {% cache 60*5 %}
 	// Add the streams
 	var stream_url = "https://api.twitch.tv/kraken/streams/";
         var channels = ["dotanoobs", "bearhugdota", "kreejaffakree", "prettypenguins", "shaneomad"];
@@ -113,7 +108,7 @@ $(document).ready(function() {
         {% endcache %}
 
         
-        $(".dn-streamer, .dn-streamer-offline").on({
+        $("#streams").on({
             mouseover: function() {
                 $(this).addClass('dn-streamer-hover');
             },
@@ -121,12 +116,6 @@ $(document).ready(function() {
                 $(this).removeClass('dn-streamer-hover');
             }
         }, "div");
-
-        // Localize the events
-	$('.date').each( function( index ) {
-		var d = new Date($(this).text());
-		$(this).text( d.toLocaleDateString() + ' @ ' + d.toLocaleTimeString() );
-        });
 });
 </script>
 {% endblock %}

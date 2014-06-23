@@ -7,6 +7,7 @@ from os import path, makedirs
 
 from calendar import timegm
 from app import app, cache
+from board import latest_news
 from teamspeak import create_teamspeak_viewer, getTeamspeakWindow, ISO3166_MAPPING
 
 def get_steam_userinfo(steam_id):
@@ -54,6 +55,22 @@ def shorten_filter(s, num_words=40):
 	else:
 		output += '...'
 	return output
+
+@app.template_filter('js_datetime')
+def js_datetime(dt):
+    return dt.strftime('%m %d %Y %H:%M')
+
+@app.template_filter('event_badge')
+def event_badge(t):
+    if t == 'coaching':
+        badge = "<div class='uk-badge'>Coaching</div>"
+    elif t == 'inhouse':
+        badge = "<div class='uk-badge uk-badge-success'>Inhouse</div>"
+    elif t == 'tournament':
+        badge = "<div class='uk-badge uk-badge-danger'>Tournament</div>"
+    else:
+        badge = "<div class='uk-badge uk-badge-warning'>Other</div>"
+    return badge;
 
 @app.context_processor
 def utility_processor():
@@ -123,12 +140,10 @@ def utility_processor():
                 img.write(i)
         return img_file
     ''' Misc '''
-    def timestamp_to_js_date(timestamp):
-        return strftime('%B %d, %Y %H:%M:%S UTC', gmtime(timestamp))
-    def js_date_to_timestamp(date):
-        return timegm(strptime(date, '%s, %d %b %Y %H:%M:%S %Z'))
+    def get_latest_news(num=3):
+        return latest_news(num)
     return dict(ts3_viewer=ts3_viewer, ts3_current_clients=ts3_current_clients, get_teamspeak_window=get_teamspeak_window, \
-            ts3_active_clients=ts3_active_clients, timestamp_to_js_date=timestamp_to_js_date, js_date_to_timestamp=js_date_to_timestamp, \
+            ts3_active_clients=ts3_active_clients, \
             num_unique_clients_by_country=num_unique_clients_by_country, country_abbreviation_mapping=country_abbreviation_mapping, \
             ts3_countries_active=ts3_countries_active, hero_image_large=hero_image_large, hero_image_small=hero_image_small, \
-            heropedia=parse_valve_heropedia, total_hero_pool=total_hero_pool)
+            heropedia=parse_valve_heropedia, total_hero_pool=total_hero_pool, get_latest_news=get_latest_news)

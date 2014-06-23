@@ -1,17 +1,31 @@
 import os
 import re
 from time import strftime, gmtime
+from hashlib import sha256
 from peewee import *
-from app import app, cache
 
-db = MySQLDatabase(app.config['FORUM_NAME'], **{'passwd': app.config['FORUM_PASSWORD'],
+from app import app, cache, db
+
+board_db = MySQLDatabase(app.config['FORUM_NAME'], **{'passwd': app.config['FORUM_PASSWORD'],
 					'host': app.config['FORUM_HOST'], 'user': app.config['FORUM_USERNAME']})
+
+def registerUserForumId(user, username, password):
+    try:
+        u = Users.filter(name=username).get()
+        hashpass = sha256(password+app.config['FORUM_SALT']+u.pss).hexdigest()
+        if hashpass == u.password:
+            user.forum_id = u.id
+            db.session.commit()
+            return {"forum_name":u.name, "forum_id":u.id}
+    except DoesNotExist:
+        pass
+    return False
 
 @cache.memoize(60*5)
 def latest_news(num=3):
 	latest_news = []
         try:
-		db.connect()
+		board_db.connect()
 		news_forum = Forums.get(fn.Lower(Forums.title) % '%news%')
 		for thread in Threads.select().where(
 			Threads.forum == news_forum.id).order_by(Threads.date.desc()).limit(num):
@@ -32,7 +46,7 @@ def latest_news(num=3):
 	except Exception as e:
 		latest_news.append({'title':'Error with forum db', 'text':e, 'url':''})
         finally:
-		db.close()
+		board_db.close()
 	return latest_news
 					
 class UnknownFieldType(object):
@@ -40,7 +54,7 @@ class UnknownFieldType(object):
 
 class BaseModel(Model):
     class Meta:
-        database = db
+        database = board_db
 
 class Badges(BaseModel):
     color = IntegerField()

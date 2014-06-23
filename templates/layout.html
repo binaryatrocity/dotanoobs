@@ -10,13 +10,14 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
         <!-- CSS includes -->
-        <!--<link rel="stylesheet" href="{{ url_for('static', filename='css/uikit.min.css') }}" />-->
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/uikit.gradient.min.css') }}" />
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/uikit/2.4.0/css/uikit.gradient.min.css" />
         <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}" />
 
         <!-- Javascript includes -->
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-        <script src="{{ url_for('static', filename='js/uikit.min.js') }}"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/uikit/2.4.0/js/uikit.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.min.js"></script>
+
     </head>
     <body>
         <!-- Navigation bar -->
@@ -33,25 +34,27 @@
                     <li><a href="{{ url_for('user_profile', userid=g.user.id) }}">Profile</a></li>
                     <li><a href="{{ url_for('user_random_hero', userid=g.user.id) }}">A-Z Challenge</a></li>
                     <li><a href="http://board.dotanoobs.com/?page=lastposts">Latest Posts</a></li>
+                    {% if g.user.admin %}
+                    <li><a href="{{ url_for('event_edit') }}">Add Event</a></li>
+                    {% endif %}
                     <li class="uk-nav-divider"></li>
-                    <li><a href="{{ url_for('user_settings', userid=g.user.id) }}">Settings</a></li>
+                    <li><a href="{{ url_for('user_settings') }}">Settings</a></li>
                     <li><a href="{{ url_for('logout') }}">Logout</a></li>
                 </ul>
            </div>
         </ul>
         {% else %}
-        <a class="uk-navbar-flip uk-navbar-content" href="{{ url_for('login') }}"><img src="http://cdn.steamcommunity.com/public/images/signinthroughsteam/sits_large_border.png" /></a>
+        <a class="uk-navbar-flip uk-navbar-content" href="{{ url_for('login') }}"><img src="http://steamcommunity-a.akamaihd.net/public/images/signinthroughsteam/sits_large_border.png" /></a>
         {% endif %}
         <div class="uk-navbar-content uk-navbar-center uk-hidden-small uk-text-bold">DotaNoobs</div>
         </nav>
 
         <!-- Flash Error Messages -->
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <ul class="flashes uk-width-1-3 uk-container-center">
-            <a href="" class="uk-alert-close uk-close"></a>
-            {% for message in messages %}
-            <li class="uk-alert uk-alert-danger">{{ message }}</li>
+        <ul class="uk-list flashes uk-width-2-3  uk-container-center">
+            {% for category, message in messages %}
+            <li class="uk-alert uk-alert-{{ category }}">{{ message }} <a href="#" class="uk-alert-close uk-close"></a> </li>
             {% endfor %}
         </ul>
         {% endif %}
@@ -60,7 +63,9 @@
         <!-- Start Main Container -->
         <div id="container" class="uk-grid">
             <!-- Big top logo -->
+            {% if not g.user.logo %}
             <div class="uk-width-1-1"><img class="uk-align-center" id="biglogo" src="{{ url_for('static', filename='img/biglogo.png') }}"></div>
+            {% endif %}
             <!-- Side navigation -->
             <div class="uk-visible-large uk-width-1-5 uk-panel">
                 {% if g.doob%}
@@ -78,9 +83,10 @@
                     {% endif %}
                     <ul class="uk-nav uk-nav-offcanvas" data-uk-nav>
                         {% include 'sidenav.html' %}
-                </ul>
+                    </ul>
+                </div>
             </div>
-            </div>
+            
             <!-- Main content area -->
             <div class="uk-width-large-4-5 uk-width-medium-5-5">
                 {% block content %}
@@ -91,6 +97,7 @@
 
         <!-- Footer section -->
         <footer class="uk-clearfix uk-align-center">
+        {% cache 60*5 %}
         <div class="uk-float-left uk-visible-large">
             <a href="http://flask.pocoo.org/"><img src="{{ url_for('static', filename='img/powered-by-flask-s.png') }}" alt="Flask"></a> &amp;
             <a href="http://store.steampowered.com/"><img src="{{ url_for('static', filename='img/steam.png') }}" alt="Steam"></a>
@@ -101,10 +108,23 @@
             <a href="http://www.youtube.com/user/DotaNoobsVods"><img src="{{ url_for('static', filename='img/youtube.png') }}" alt="YouTube" /></a>
             <a href="emailto:admin@dotanoobs.com"><img src="{{ url_for('static', filename='img/email.png') }}" /></a>
         </div>
+        {% endcache %}
         </footer>
         <!-- Page-specific javascript here -->
         {% block pagescripts %}
         {% endblock %}
+        <script type='text/javascript'>
+            $(document).ready(function() {
+                $("li.uk-alert > a.uk-alert-close").on('click', function(){
+                    $(this).parent().hide();
+                });
+                $(document).ready(function() {
+                    $('.date').each(function (index) {
+                        var d = moment.utc($(this).text()+" UTC");
+                        $(this).html(d.local().format("h:mm A on MMM Do"));
+                    });
+                });
+            });
+        </script>
     </body>
 </html>
-
