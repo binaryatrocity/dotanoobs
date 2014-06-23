@@ -4,3 +4,9 @@ __pycache__/
 
 *.so
 static/img/hero-images/*.png
+
+
+# DOTANOOBS
+config.py
+venv/
+*.db
