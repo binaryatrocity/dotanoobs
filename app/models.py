@@ -6,7 +6,7 @@ from sqlalchemy.ext.mutable import Mutable
 
 import board
 from app import db, app
-from utils import parse_valve_heropedia, complete_hero_data
+from utils import parse_valve_heropedia, complete_hero_data, API_DATA
 
 # Model independant get_or_create
 def get_or_create_instance(session, model, **kwargs):
@@ -73,6 +73,7 @@ class User(db.Model):
         last_seen = db.Column(db.DateTime)
         twitch = db.Column(db.String(60))
         random_heroes = db.Column(MutableDict.as_mutable(Json))
+        az_completions = db.Column(db.Integer)
 
         public = db.Column(db.Boolean)
         logo = db.Column(db.Boolean)
@@ -94,6 +95,7 @@ class User(db.Model):
         def __init__(self, steam_id):
             self.steam_id = steam_id
             self.random_heroes = {'current':None, 'completed':[]}
+            self.az_completions = 0
             self.created = datetime.utcnow()
             self.last_seen = datetime.utcnow()
             self.bio_text = None 
@@ -109,7 +111,7 @@ class User(db.Model):
             if not self.random_heroes['current']:
                 heroes = []
                 for (tavern_name, tavern) in parse_valve_heropedia():
-                    heroes.extend([complete_hero_data('name', entry['name']) for entry in tavern])
+                    heroes.extend([complete_hero_data('name', entry['name']) for entry in tavern if entry['name'] not in self.random_heroes['completed']])
                 if heroes:
                     self.random_heroes['current'] = choice(heroes)
                     self.random_heroes = self.random_heroes
@@ -128,6 +130,9 @@ class User(db.Model):
 
         def random_success(self):
             self.random_heroes['completed'].append(self.random_heroes['current']['name'])
+            if len(API_DATA['result']['heroes']) - len(self.random_heroes['completed']) <= 0:
+                self.az_completions = self.az_completions + 1
+                del self.random_heroes['completed'][:]
             self.random_heroes['current'] = None
             self.random_heroes = self.random_heroes
             db.session.commit()

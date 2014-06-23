@@ -1,13 +1,11 @@
 #!venv/bin/python
-import os
 from flask import Flask
 from flask.ext.script import Manager, Server
 from flask.ext.migrate import Migrate, MigrateCommand
 
 from app import *
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'app.db')
+SQLALCHEMY_DATABASE_URI = 'mysql://root:$perwePP@localhost/dotanoobs'
 
 migrate = Migrate(app, db)
 manager = Manager(app)

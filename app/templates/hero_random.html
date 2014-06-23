@@ -21,7 +21,7 @@
             </span>
         </p>
 
-        {% if g.user and g.user.steamid == user.steamid %}
+        {% if g.user and g.user.steam_id == user.steam_id %}
         <form action="{{ url_for('user_random_hero', userid=g.user.id) }}" method="post" id="random_form" class="uk-margin">
             <input type="checkbox" name="completed" id="completed_checkbox" style="display:none;">
             <input type="checkbox" name="skip" id="skip_checkbox" style="display:none;">
@@ -31,7 +31,9 @@
         {% endif %}
     </div>
     <div class="uk-width-large-2-3 uk-width-medium-1-1 uk-panel uk-text-center uk-margin">
-        <div class="uk-badge uk-panel-badge uk-badge-notification uk-badge-success">x1</div>
+        {% if user.az_completions > 0 %}
+        <div class="uk-badge uk-panel-badge uk-badge-notification uk-badge-success">x{{ user.az_completions }}</div>
+        {% endif %}
         <h3 class="uk-panel-title">Completed</h3>
         {% for hero in user.random_heroes.completed %}
             <img src="{{ url_for('static', filename=hero_image_small(hero)) }}" class="dn-hero-icon" />

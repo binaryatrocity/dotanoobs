@@ -181,10 +181,12 @@ def award_idle_ts3_points(server, cfg):
                     doob.update_connection()
                     active_users.add(doob)
         doobs = set(models.User.query.filter(models.User.ts3_starttime != None).all())
+        '''
         print doobs, active_users
         for doob in doobs.intersection(active_users):
             print(doob.nickname)
-            #doob.finalize_connection() 
+            doob.finalize_connection() 
+        '''
 
 
 if __name__ == "__main__":

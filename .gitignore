@@ -3,10 +3,12 @@ __pycache__/
 *.py[cod]
 
 *.so
-static/img/hero-images/*.png
+app/static/img/hero-images/
 
 
 # DOTANOOBS
 config.py
 venv/
 *.db
+*.swp
+clientlist.txt
