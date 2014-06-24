@@ -364,9 +364,6 @@ def award_idle_ts3_points(voice):
         # Update the data
         active_users = set() 
         for client in clientlist.values():
-            with open('clientlist.txt', 'ab') as f:
-                f.write(client['client_nickname']+'\n\r\t'+\
-                        client['client_unique_identifier']+'\n\r')
             if client['cid'] not in exempt_cids:
                 doob = models.User.query.filter_by(teamspeak_id=client['client_unique_identifier']).first()
                 if doob:
