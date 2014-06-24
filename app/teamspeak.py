@@ -1,9 +1,7 @@
 from flask import url_for
-
-import operator
-import os
+from operator import itemgetter
+from os import path
 import ts3
-import requests
 from datetime import datetime, timedelta
 from xml.etree import ElementTree
 from bs4 import BeautifulSoup
@@ -139,11 +137,11 @@ def create_teamspeak_viewer():
                                     # Server group images
                                     sgids = [int(sg) for sg in client['client_servergroups'].split(',')]
                                     servergroups = [servergroup for servergroup in servergrouplist if int(servergroup['sgid']) in sgids]
-                                    servergroups.sort(key=operator.itemgetter('sortid'))
+                                    servergroups.sort(key=itemgetter('sortid'))
                                     for servergroup in servergroups:
                                             if not servergroup['iconid']: continue
                                             img_fname = 'img/ts3_viewer/%s.png' % servergroup['iconid']
-                                            if not os.path.exists(os.path.join(app.static_folder, img_fname)):
+                                            if not path.exists(path.join(app.static_folder, img_fname)):
                                                     continue
                                             image_tag = soup.new_tag('span')
                                             image_tag['class'] = 'tswv-image tswv-image-right'
@@ -175,8 +173,6 @@ def create_teamspeak_viewer():
             return "error: %s" % inst
 
 def get_ISO3166_mapping():
-    #data = requests.get(url_for('static', filename='country_codes.xml'))
-    #xml = ElementTree.fromstring(data.text.encode('utf-8'))
     with open('app/static/country_codes.xml', mode='r') as d:
         data = d.read()
     xml = ElementTree.fromstring(data)
@@ -187,4 +183,195 @@ def get_ISO3166_mapping():
 
 ISO3166_MAPPING = get_ISO3166_mapping()
 
+#
+# Scheduled functions for TeamspeakServer
+#
 
+def idle_mover(voice):
+    """ Checks connected clients idle_time, moving to AFK if over TS3_MAX_IDLETIME. """
+
+    app.logger.info("Running TS3 AFK mover...")
+    exempt_cids = []
+    permid_response = server.send_command('permidgetbyname', keys={'permsid': 'i_channel_needed_join_power'})
+    if permid_response.is_successful:
+        join_permid = permid_response.data[0]['permid']
+    def exempt_check(cid):
+        # check flags
+        flag_response = server.send_command('channelinfo', keys={'cid': cid})
+        if flag_response.is_successful:
+            if flag_response.data[0]['channel_needed_talk_power'] != '0': return True
+        permid_response = server.send_command('channelpermlist', keys={'cid': cid})
+        if permid_response.is_successful:
+            for perm in permid_response.data:
+                if perm['permid'] == join_permid and perm['permvalue'] != '0': return True
+        return False
+    list_response = server.send_command('channellist')
+    if list_response.is_successful:
+        for channel in list_response.data:
+            if exempt_check(channel['cid']):
+                exempt_cids.append(channel['cid'])
+
+    # get destination
+    response = server.send_command('channelfind', keys={'pattern': 'AFK'})
+    if response.is_successful:
+        afk_channel = response.data[0]
+
+    # Get list of clients
+    clientlist = server.send_command('clientlist', opts=['times']).data
+    for client in clientlist:
+        clientinfo = server.send_command('clientinfo', {'clid':client['clid']})
+        if clientinfo.is_successful:
+            client['client_unique_identifier'] = clientinfo.data[0]['client_unique_identifier']
+        else:
+            raise UserWarning('Could not find the clientinfo for %s' % client['clid'])
+
+    # move idlers to afk channel
+    for client in clientlist:
+        if( int(client['client_idle_time']) > app.config['TS3_MAX_IDLETIME']):
+            if client['cid'] not in exempt_cids:
+                # Have TeamSpeak move AFK user to appropriate channel
+                server.send_command('clientmove', keys={'clid': client['clid'], 'cid': afk_channel['cid']})
+
+def store_active_data(voice):
+        """ Take a snapshot of Teamspeak (clients, countries, etc) to feed the ts3_stats page """
+
+        app.logger.info("Taking Teamspeak snapshot...")
+        # Get exempt channels (AFK, passworded, join powers)
+        exempt_cids = []
+        permid_response = server.send_command('permidgetbyname', keys={'permsid': 'i_channel_needed_join_power'})
+        if permid_response.is_successful:
+            join_permid = permid_response.data[0]['permid']
+        def exempt_check(cid):
+            # Check flags
+            flag_response = server.send_command('channelinfo', keys={'cid': cid})
+            if flag_response.is_successful:
+                if flag_response.data[0]['channel_flag_password'] != '0': return True
+                if flag_response.data[0]['channel_needed_talk_power'] != '0': return True
+            permid_response = server.send_command('channelpermlist', keys={'cid': cid})
+            if permid_response.is_successful:
+                for perm in permid_response.data:
+                    if perm['permid'] == join_permid and perm['permvalue'] != '0': return True
+            return False
+        list_response = server.send_command('channellist')
+        if list_response.is_successful:
+            for channel in list_response.data:
+                if exempt_check(channel['cid']):
+                    exempt_cids.append(channel['cid'])
+
+        # Get list of clients
+        clientlist = server.send_command('clientlist', opts=("country",)).data
+        # Remove the server_query and afk/moderated clients
+        clientlist = filter(lambda client: client['client_type'] == '0' and client['cid'] not in exempt_cids, clientlist)
+        # Compile the important information
+        clients = {}
+        for client in clientlist:
+                clientinfo = server.send_command('clientdbinfo', {'cldbid': client['client_database_id']})
+                if clientinfo.is_successful:
+                        clients[clientinfo.data[0]['client_unique_identifier']] = {'country': client['client_country']}
+                else:
+                        raise UserWarning('Could not find the clientdbinfo for %s' % client['client_database_id'])
+
+        # Update the data
+        tsdata = models.TeamspeakData(clients)
+        db.session.add(tsdata)
+        db.session.commit()
+
+def process_ts3_events(voice):
+    """ Create Teamspeak channels for upcoming events, delete empty event channels that have expired """
+
+    app.logger.info("Processing Teamspeak events...")
+    # Get list of clients
+    clientlist = server.clientlist()
+    for clid, client in clientlist.iteritems():
+        clientinfo = server.send_command('clientinfo', {'clid':clid})
+        if clientinfo.is_successful:
+            client['client_unique_identifier'] = clientinfo.data[0]['client_unique_identifier']
+        else:
+            raise UserWarning('Could not find clientinfo for %s' % clid)
+
+    # Process any active events
+    for clid, client in clientlist.iteritems():
+        u = models.User.query.filter_by(teamspeak_id=client['client_unique_identifier']).first()
+        e = models.Event.query.filter(models.Event.start_time <= datetime.utcnow(), models.Event.end_time > datetime.utcnow()).all()
+        if u and e:
+            for event in e:
+                if client['cid'] in event.cids:
+                    event.add_participant(u)
+    
+    # Add channels for upcoming events
+    e = models.Event.query.filter(models.Event.start_time >= datetime.utcnow(), \
+            models.Event.start_time <= (datetime.utcnow() + timedelta(minutes=60))).all()
+    for event in e:
+        if not event.cids:
+            print("Adding channels for event {}".format(event.name))
+            event.create_channels()
+
+    # Remove channels for expired events
+    e = models.Event.query.filter(models.Event.start_time > (datetime.utcnow() - timedelta(hours=24)), \
+            models.Event.end_time < (datetime.utcnow() - timedelta(minutes=60))).all()
+    for event in e:
+        current_time = datetime.utcnow()
+        remove_time = event.end_time + timedelta(minutes=60)
+        warn_time = event.end_time + timedelta(minutes=30)
+        time_left = remove_time - current_time
+        message = "This event channel is temporary and will be removed in {} minutes.".format(divmod(time_left.days * 86400 + time_left.seconds, 60)[0])
+        if event.cids:
+            if current_time > remove_time:
+                print("Removing channels for event: {}".format(event.name))
+                event.remove_channels()
+            elif current_time > warn_time:
+                for cid in event.cids:
+                    clients = [client for client in clientlist.values() if int(client['cid']) == int(cid)]
+                    for client in clients:
+                        print("Warning {} about expired event {}".format(client['client_nickname'], event.name))
+                        server.clientpoke(client['clid'], message)
+
+
+def award_idle_ts3_points(voice):
+        """ Award points for active time spent in the Teamspeak server. """
+
+        app.logger.info("Awarding Teamspeak idle points")
+        # Get exempt channels (AFK, passwords, join power)
+        exempt_cids = []
+        permid_response = server.send_command('permidgetbyname', keys={'permsid': 'i_channel_needed_join_power'})
+        if permid_response.is_successful:
+            join_permid = permid_response.data[0]['permid']
+        def exempt_check(cid):
+            # Check flags
+            flag_response = server.send_command('channelinfo', keys={'cid':cid})
+            if flag_response.is_successful:
+                if flag_response.data[0]['channel_flag_password'] != '0': return True
+                if flag_response.data[0]['channel_needed_talk_power'] !='0': return True
+            permid_response = server.send_command('channelpermlist', keys={'cid': cid})
+            if permid_response.is_successful:
+                for perm in permid_response.data:
+                    if perm['permid'] == join_permid and perm['permvalue'] != '0': return True
+            return False
+        list_response = server.send_command('channellist')
+        if list_response.is_successful:
+            for channel in list_response.data:
+                if exempt_check(channel['cid']):
+                    exempt_cids.append(channel['cid'])
+        # Get list of clients
+        clientlist = server.clientlist()
+        for clid, client in clientlist.iteritems():
+            clientinfo = server.send_command('clientinfo', {'clid': clid})
+            if clientinfo.is_successful:
+                client['client_unique_identifier'] = clientinfo.data[0]['client_unique_identifier']
+            else:
+                raise UserWarning('Could not find the clientinfo for %s' % clid) 
+
+        # Update the data
+        active_users = set() 
+        for client in clientlist.values():
+            with open('clientlist.txt', 'ab') as f:
+                f.write(client['client_nickname']+'\n\r\t'+\
+                        client['client_unique_identifier']+'\n\r')
+            if client['cid'] not in exempt_cids:
+                doob = models.User.query.filter_by(teamspeak_id=client['client_unique_identifier']).first()
+                if doob:
+                    doob.update_connection()
+                    active_users.add(doob)
+        doobs = set(models.User.query.filter(models.User.ts3_starttime != None).all())
+        for doob in doobs.intersection(active_users):
+            doob.finalize_connection() 
