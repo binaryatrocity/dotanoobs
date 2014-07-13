@@ -95,6 +95,15 @@ footer {
     float:right;
 }
 
-#profile_links > a {
-    font-size:14px;
+#winrate_graph {
+    margin: 5em;
+}
+
+.pipemenu > li {
+    display: inline-block;
+    list-style: none;
+}
+
+.pipemenu > li + li::before {
+    content: " | ";
 }

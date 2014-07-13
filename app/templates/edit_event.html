@@ -64,6 +64,16 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/uikit/2.4.0/addons/timepicker/timepicker.min.js"></script>
 <link rel=stylesheet href="//cdnjs.cloudflare.com/ajax/libs/uikit/2.4.0/addons/datepicker/datepicker.gradient.css"></link>
 <script>
+    $(document).ready(function(){
+        var s = $("#start_time").val().split(" ");
+        var e = $("#end_time").val().split(" ");
+
+        $("#start_d").val(s[0]);
+        $("#start_t").val(s[1]);
+        $("#end_d").val(e[0]);
+        $("#end_t").val(e[1]);
+    });
+
     $(".uk-form").submit(function(event) {
         var s = moment($("#start_d").val() + ' ' + $("#start_t").val(), "DD.MM.YYYY HH:mm");
         var e = moment($("#end_d").val() + ' ' + $("#end_t").val(), "DD.MM.YYYY HH:mm");

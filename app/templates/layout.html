@@ -10,19 +10,21 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
         <!-- CSS includes -->
-        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/uikit/2.4.0/css/uikit.gradient.min.css" />
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/uikit/2.8.0/css/uikit.gradient.min.css" />
         <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}" />
 
         <!-- Javascript includes -->
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/uikit/2.4.0/js/uikit.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/uikit/2.8.0/js/uikit.min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.min.js"></script>
 
     </head>
     <body>
         <!-- Navigation bar -->
         <nav class="uk-navbar uk-navbar-attached" data-uk-navbar>
-        <a href="#offcanvas" class="uk-navbar-brand uk-hidden-large" data-uk-offcanvas><img src="{{ url_for('static', filename='img/navlogo.png') }}" /><i class="uk-icon-double-angle-down"></i></a>
+        <a href="#offcanvas" class="uk-navbar-brand uk-hidden-large" data-uk-offcanvas>
+            <img src="{{ url_for('static', filename='img/navlogo.png') }}" class="uk-visible-large" /><i class="uk-icon-navicon uk-hidden-large"></i>
+        </a>
         <a href="" class="uk-navbar-brand uk-visible-large" data-uk-offcanvas><img src="{{ url_for('static', filename='img/navlogo.png') }}" /></a>
         <!-- Check if user is logged in -->
         {% if g.user %}

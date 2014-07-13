@@ -81,11 +81,14 @@ class User(db.Model):
         points_from_events = db.Column(db.Integer)
         points_from_ts3 = db.Column(db.Integer)
         points_from_forum = db.Column(db.Integer)
+
         ts3_starttime = db.Column(db.DateTime)
         ts3_endtime = db.Column(db.DateTime)
         ts3_rewardtime = db.Column(db.DateTime)
         ts3_connections = db.Column(MutableDict.as_mutable(Json))
+
         last_post_reward = db.Column(db.Integer)
+        winrate_data = db.Column(MutableDict.as_mutable(Json))
 
 
         @classmethod
@@ -96,6 +99,7 @@ class User(db.Model):
             self.steam_id = steam_id
             self.random_heroes = {'current':None, 'completed':[]}
             self.az_completions = 0
+            self.ts3_connections = {'list':[]}
             self.created = datetime.utcnow()
             self.last_seen = datetime.utcnow()
             self.bio_text = None 
@@ -161,7 +165,7 @@ class User(db.Model):
             db.session.commit();
 
         def finalize_connection(self):
-            self.ts3_connections.append({'starttime': self.ts3_starttime, 'endtime': self.ts3_endtime})
+            self.ts3_connections['list'].append({'starttime': self.ts3_starttime, 'endtime': self.ts3_endtime})
             self.ts3_startime = None
             self.ts3_endtime = None
             db.session.commit();

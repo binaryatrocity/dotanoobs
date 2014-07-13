@@ -36,12 +36,12 @@
 {% endblock %}
 
 {% block pagescripts %}
-{% cache 60*5 %}
 {% set teamspeak_data = get_teamspeak_window() %}
 <script src="//cdnjs.cloudflare.com/ajax/libs/highcharts/3.0.7/highcharts.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highcharts/3.0.7/modules/map.src.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highcharts/3.0.7/modules/data.src.js"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/world-map-shapes.js') }}"></script>
+{% cache 60*5 %}
 <script>
 $(document).ready(function() {
 	$('#unique_clients').html("{{ ts3_active_clients(teamspeak_data) }}");

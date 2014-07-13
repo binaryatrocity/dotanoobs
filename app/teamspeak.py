@@ -6,12 +6,12 @@ from datetime import datetime, timedelta
 from xml.etree import ElementTree
 from bs4 import BeautifulSoup
 
+import models
 from app import app, db
 
 def getTeamspeakWindow(window=timedelta(weeks=1)):
     current_time = datetime.utcnow()
-    from models import TeamspeakData
-    return TeamspeakData.query.filter(TeamspeakData.time < current_time, TeamspeakData.time > current_time-window).order_by(TeamspeakData.time).all()
+    return models.TeamspeakData.query.filter(models.TeamspeakData.time < current_time, models.TeamspeakData.time > current_time-window).order_by(models.TeamspeakData.time).all()
 
 def registerUserTeamspeakId(user, tsid):
     server = ts3.TS3Server(app.config['TS3_HOST'], app.config['TS3_PORT'])
@@ -173,7 +173,7 @@ def create_teamspeak_viewer():
             return "error: %s" % inst
 
 def get_ISO3166_mapping():
-    with open('app/static/country_codes.xml', mode='r') as d:
+    with open(path.join(path.dirname(__file__), 'static/country_codes.xml'), mode='r') as d:
         data = d.read()
     xml = ElementTree.fromstring(data)
     d = dict()
@@ -187,10 +187,10 @@ ISO3166_MAPPING = get_ISO3166_mapping()
 # Scheduled functions for TeamspeakServer
 #
 
-def idle_mover(voice):
+def idle_mover(server):
     """ Checks connected clients idle_time, moving to AFK if over TS3_MAX_IDLETIME. """
 
-    app.logger.info("Running TS3 AFK mover...")
+    app.logger.debug("Running TS3 AFK mover...")
     exempt_cids = []
     permid_response = server.send_command('permidgetbyname', keys={'permsid': 'i_channel_needed_join_power'})
     if permid_response.is_successful:
@@ -220,10 +220,8 @@ def idle_mover(voice):
     clientlist = server.send_command('clientlist', opts=['times']).data
     for client in clientlist:
         clientinfo = server.send_command('clientinfo', {'clid':client['clid']})
-        if clientinfo.is_successful:
-            client['client_unique_identifier'] = clientinfo.data[0]['client_unique_identifier']
-        else:
-            raise UserWarning('Could not find the clientinfo for %s' % client['clid'])
+        #if clientinfo.is_successful:
+            #client['client_unique_identifier'] = clientinfo.data[0]['client_unique_identifier']
 
     # move idlers to afk channel
     for client in clientlist:
@@ -232,10 +230,10 @@ def idle_mover(voice):
                 # Have TeamSpeak move AFK user to appropriate channel
                 server.send_command('clientmove', keys={'clid': client['clid'], 'cid': afk_channel['cid']})
 
-def store_active_data(voice):
+def store_active_data(server):
         """ Take a snapshot of Teamspeak (clients, countries, etc) to feed the ts3_stats page """
 
-        app.logger.info("Taking Teamspeak snapshot...")
+        app.logger.debug("Taking Teamspeak snapshot...")
         # Get exempt channels (AFK, passworded, join powers)
         exempt_cids = []
         permid_response = server.send_command('permidgetbyname', keys={'permsid': 'i_channel_needed_join_power'})
@@ -276,18 +274,16 @@ def store_active_data(voice):
         db.session.add(tsdata)
         db.session.commit()
 
-def process_ts3_events(voice):
+def process_ts3_events(server):
     """ Create Teamspeak channels for upcoming events, delete empty event channels that have expired """
 
-    app.logger.info("Processing Teamspeak events...")
+    app.logger.debug("Processing Teamspeak events...")
     # Get list of clients
     clientlist = server.clientlist()
     for clid, client in clientlist.iteritems():
         clientinfo = server.send_command('clientinfo', {'clid':clid})
         if clientinfo.is_successful:
             client['client_unique_identifier'] = clientinfo.data[0]['client_unique_identifier']
-        else:
-            raise UserWarning('Could not find clientinfo for %s' % clid)
 
     # Process any active events
     for clid, client in clientlist.iteritems():
@@ -327,10 +323,10 @@ def process_ts3_events(voice):
                         server.clientpoke(client['clid'], message)
 
 
-def award_idle_ts3_points(voice):
+def award_idle_ts3_points(server):
         """ Award points for active time spent in the Teamspeak server. """
 
-        app.logger.info("Awarding Teamspeak idle points")
+        app.logger.debug("Awarding Teamspeak idle points")
         # Get exempt channels (AFK, passwords, join power)
         exempt_cids = []
         permid_response = server.send_command('permidgetbyname', keys={'permsid': 'i_channel_needed_join_power'})
@@ -358,14 +354,15 @@ def award_idle_ts3_points(voice):
             clientinfo = server.send_command('clientinfo', {'clid': clid})
             if clientinfo.is_successful:
                 client['client_unique_identifier'] = clientinfo.data[0]['client_unique_identifier']
-            else:
-                raise UserWarning('Could not find the clientinfo for %s' % clid) 
 
         # Update the data
         active_users = set() 
         for client in clientlist.values():
             if client['cid'] not in exempt_cids:
-                doob = models.User.query.filter_by(teamspeak_id=client['client_unique_identifier']).first()
+                try:
+                    doob = models.User.query.filter_by(teamspeak_id=client['client_unique_identifier']).first()
+                except KeyError:
+                    pass
                 if doob:
                     doob.update_connection()
                     active_users.add(doob)
