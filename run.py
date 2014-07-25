@@ -70,7 +70,6 @@ def admin(name):
 @manager.command
 def calc_winrates():
     from app.analytics import calculate_winrates
-    tsServer = createTeamspeakInstance()
     calculate_winrates()
 
 @manager.command

@@ -100,6 +100,7 @@ class User(db.Model):
             self.random_heroes = {'current':None, 'completed':[]}
             self.az_completions = 0
             self.ts3_connections = {'list':[]}
+            self.ts3_rewardtime = datetime.utcnow()
             self.created = datetime.utcnow()
             self.last_seen = datetime.utcnow()
             self.bio_text = None 
@@ -154,14 +155,14 @@ class User(db.Model):
             self.ts3_endtime = now
             # Add general TS3 points here
             if self.ts3_endtime and self.ts3_rewardtime:
-                duration = (self.ts3_endtime - self.ts3_rewardtime) / 60.0
+                delta = (self.ts3_endtime - self.ts3_rewardtime)
+                duration = (delta.seconds % 3600) // 60
                 if duration > reward_threshold:
                     self.ts3_rewardtime = datetime.utcnow()
                     self.points_from_ts3 += 1
                 else:
                     self.ts3_rewardtime = datetime.utcnow()
             self.last_seen = datetime.utcnow()
-            print self.ts3_starttime, self.ts3_endtime, self.ts3_rewardtime
             db.session.commit();
 
         def finalize_connection(self):

@@ -65,13 +65,14 @@
 <link rel=stylesheet href="//cdnjs.cloudflare.com/ajax/libs/uikit/2.4.0/addons/datepicker/datepicker.gradient.css"></link>
 <script>
     $(document).ready(function(){
-        var s = $("#start_time").val().split(" ");
-        var e = $("#end_time").val().split(" ");
+        var tz = new Date().getTimezoneOffset();
+        var s = moment.utc($("#start_time").val(), "DD.MM.YYYY HH:mm").zone(tz);
+        var e = moment.utc($("#end_time").val(), "DD.MM.YYYY HH:mm").zone(tz);
 
-        $("#start_d").val(s[0]);
-        $("#start_t").val(s[1]);
-        $("#end_d").val(e[0]);
-        $("#end_t").val(e[1]);
+        $("#start_d").val(s.format("DD.MM.YYYY"));
+        $("#start_t").val(s.format("HH:mm"));
+        $("#end_d").val(e.format("DD.MM.YYYY"));
+        $("#end_t").val(e.format("HH:mm"));
     });
 
     $(".uk-form").submit(function(event) {

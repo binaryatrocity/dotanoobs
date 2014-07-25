@@ -63,15 +63,15 @@
             <tbody class="uk-text-small">
                 <tr>
                     <td class="uk-width-4-10">TS Points</td>
-                    <td class="uk-width-6-10 uk-text-right">0</td>
+                    <td class="uk-width-6-10 uk-text-right">{{ user.points_from_ts3 }}</td>
                 </tr>
                 <tr>
                     <td>Events Points</td>
-                    <td class="uk-text-right">0</td>
+                    <td class="uk-text-right">{{ user.points_from_events }}</td>
                 </tr>
                 <tr>
                     <td>Forum Points</td>
-                    <td class="uk-text-right">0</td>
+                    <td class="uk-text-right">{{ user.points_from_forum }}</td>
                 </tr>
                 <tr>
                     <td>Last Seen</td>
@@ -83,7 +83,12 @@
                 </tr>
             </tbody>
         </table>
+        {% if not user.winrate_data['data'] %}
+        <h3 class="uk-text-warning">No data compiled, check back tomorrow!</h3>
+        <button class="uk-button uk-button-success uk-align-center" data-uk-modal="{target: '#winrate_modal'}" disabled>View Winrate</button>
+        {% else %}
         <button class="uk-button uk-button-success uk-align-center" data-uk-modal="{target: '#winrate_modal'}">View Winrate</button>
+        {% endif %}
         {% endif %}
     </div>
 </div>
@@ -99,7 +104,6 @@
 
 {% block pagescripts %}
 <script src="http://code.highcharts.com/highcharts.js"></script>
-{% cache 60*700 %}
 <script>
     $('#winrate_modal').on({
         'uk.modal.show': function(){
@@ -130,5 +134,4 @@
         });
     });
 </script>
-{% endcache %}
 {% endblock %}
