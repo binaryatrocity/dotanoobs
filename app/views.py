@@ -3,7 +3,7 @@ from flask import render_template, flash, redirect, g, request, url_for, session
 from datetime import datetime
 from functools import wraps
 
-from app import app, db, oid, cache
+from app import app, db, oid
 from models import User, Event
 from utils import get_steam_userinfo
 from board import registerUserForumId

@@ -18,6 +18,7 @@ def get_steam_userinfo(steam_id):
 	data = requests.get('http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0001/', params=options).json()
 	return data['response']['players']['player'][0] or {}
 
+@cache.cached(timeout=60*60*24, key_prefix='hero_data')
 def get_api_hero_data():
     data = requests.get("https://api.steampowered.com/IEconDOTA2_570/GetHeroes/v0001/?key="+app.config['DOTA2_API_KEY']+"&language=en_us").json()
     return data
@@ -32,6 +33,7 @@ def complete_hero_data(key, value):
 def get_hero_data_by_id(hero_id):
     return API_DATA['result']['heroes'][hero_id-1]
 
+@cache.cached(timeout=60*60*24, key_prefix='tavern_data')
 def parse_valve_heropedia():
     data = requests.get('http://www.dota2.com/heroes/')
     soup = BeautifulSoup(data.text)
@@ -83,6 +85,7 @@ def utility_processor():
     def ts3_current_clients():
         num = create_teamspeak_viewer()[1]
         return num
+    @cache.memoize(60*5)
     def get_teamspeak_window():
         data_list = getTeamspeakWindow()
         return data_list
