@@ -5,7 +5,6 @@
 {% block title %}Dota Noobs{% endblock %}
 
 {% block content %}
-{% cache 60*5 %}
 {% set teamspeak_data = get_teamspeak_window() %}
 {% set latest_news = get_latest_news() %}
 <div class="uk-grid">
@@ -60,7 +59,8 @@
     </div>
 
 </div>
-
+{# ERRORS WHEN CACHING WTF? DISABLE TEMPORARILY #}
+{% cache 60*5 %}
 {% endcache %}
 {% endblock %}
 
@@ -73,8 +73,7 @@ $(document).ready(function() {
             $('#events_large').append(msg);
         }
 
-        {% cache 60*5 %}
-	// Add the streams
+	// Add the twitch streams
 	var stream_url = "https://api.twitch.tv/kraken/streams/";
         var channels = ["dotanoobs", "bearhugdota", "kreejaffakree", "prettypenguins", "shaneomad"];
 	for (var idx in channels) {
@@ -105,9 +104,35 @@ $(document).ready(function() {
                     }
 		});
         }
-        {% endcache %}
-
         
+	// Add the hitbox streams
+	var stream_url = "http://api.hitbox.tv/media/live/";
+        var channels = ["Bandita", "Gibb3d"];
+	for (var idx in channels) {
+		$.getJSON(stream_url+channels[idx], function(data) {
+                    var livestream = data.livestream[0];
+                    var $a = $("<a href='"+livestream.channel.channel_link+"'></a>");
+                    if (livestream.media_is_live == "1") {
+                        var $strm = $("<div class='dn-streamer uk-text-success uk-panel uk-panel-box' id='"+livestream.media_name+"'></div>");
+                        $strm.append("<p class='uk-text-bold'>" + livestream.media_user_name + "</p>");
+                        $strm.append("<img src='http://edge.sf.hitbox.tv" + livestream.media_thumbnail + "' />");
+                        $strm.append("<p><i class='uk-icon-male'></i> " + livestream.media_views + "</p>");
+
+                        $a.append($strm);
+                        $("#streams").prepend($a);
+
+                    } else {
+                        var $strm = $("<div class='dn-streamer-offline uk-text-success uk-panel uk-panel-box' id='"+livestream.media_name+"'></div>");
+                        $strm.append("<p class='uk-text-bold'>" + livestream.media_user_name + "</p>");
+                        $strm.append("<img src='http://edge.sf.hitbox.tv" + livestream.channel.user_logo + "' />");
+                        $strm.append("<p class='dn-offline'>Offline</p>");
+
+                        $a.append($strm);
+                        $("#streams").append($a);
+                    }
+		});
+        }
+
         $("#streams").on({
             mouseover: function() {
                 $(this).addClass('dn-streamer-hover');
