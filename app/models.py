@@ -1,6 +1,5 @@
 import simplejson as json
 from datetime import datetime
-from random import choice
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.mutable import Mutable
 
@@ -69,16 +68,14 @@ class User(db.Model):
 
 	nickname = db.Column(db.String(80))
 	avatar = db.Column(db.String(255))
-        admin = db.Column(db.Boolean)
 
         bio_text = db.Column(db.String(4096))
         created = db.Column(db.DateTime)
         last_seen = db.Column(db.DateTime)
         twitch = db.Column(db.String(60))
         hitbox = db.Column(db.String(60))
-        random_heroes = db.Column(MutableDict.as_mutable(Json))
-        az_completions = db.Column(db.Integer)
 
+        admin = db.Column(db.Boolean)
         public = db.Column(db.Boolean)
         logo = db.Column(db.Boolean)
 
@@ -114,7 +111,6 @@ class User(db.Model):
 
         def __init__(self, steam_id):
             self.steam_id = steam_id
-            self.random_heroes = {'current':None, 'completed':[]}
             self.az_completions = 0
             self.ts3_connections = {'list':[]}
             self.ts3_rewardtime = datetime.utcnow()
@@ -127,44 +123,6 @@ class User(db.Model):
             self.admin = False
             self.public = True
             self.biglogo = True
-        
-        @property
-        def random_hero(self):
-            if not self.random_heroes['current']:
-                heroes = []
-                for (tavern_name, tavern) in parse_valve_heropedia():
-                    heroes.extend([complete_hero_data('name', entry['name']) for entry in tavern if entry['name'] not in self.random_heroes['completed']])
-                if heroes:
-                    self.random_heroes['current'] = choice(heroes)
-                    self.random_heroes = self.random_heroes
-                    db.session.commit()
-            return self.random_heroes['current']
-
-        @random_hero.setter
-        def random_hero(self, herodata):
-            self.random_heroes['current'] = herodata
-            self.random_heroes = self.random_heroes
-            db.session.commit()
-
-        @property
-        def random_completed(self):
-            return self.random_heroes['completed']
-
-        def random_success(self):
-            self.random_heroes['completed'].append(self.random_heroes['current']['name'])
-            if len(API_DATA['result']['heroes']) - len(self.random_heroes['completed']) <= 0:
-                self.az_completions = self.az_completions + 1
-                del self.random_heroes['completed'][:]
-            self.random_heroes['current'] = None
-            self.random_heroes = self.random_heroes
-            db.session.commit()
-            return self.random_hero
-
-        def random_skip(self):
-            self.random_heroes['current'] = None
-            self.random_heroes = self.random_heroes
-            db.session.commit()
-            return self.random_hero
 
         def update_connection(self, reward_threshold=30):
             now = datetime.utcnow()

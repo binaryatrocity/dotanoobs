@@ -45,19 +45,6 @@
     <!-- Side bar -->
     <div class="uk-width-large-1-3 uk-width-medium-1-1 uk-panel">
         {% if user.public %}
-        <div class="uk-container-center uk-text-center">
-            <span class="uk-text-bold">Current Hero</span><br/>
-            <span class="uk-text-success uk-text-bold">
-                {{ user.random_hero['localized_name'] }} 
-                ({{ user.random_heroes.completed | length + 1 }}
-                /
-                {{ total_hero_pool() - user.random_heroes.completed|length }})
-            </span><br/>
-            <a href={{ url_for('user_random_hero', userid=user.id) }}>
-                <img src="{{ url_for('static', filename=hero_image_large(user.random_hero)) }}" class="dn-hero-icon" /><br/>
-                <span>View A-Z Progress</span>
-            </a>
-        </div>
         <table class="uk-table uk-table-hover uk-table-condensed">
             <caption>{{ user.nickname }}</caption>
             <tbody class="uk-text-small">

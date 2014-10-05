@@ -86,17 +86,6 @@ def user_profile(userid):
     user = User.query.filter_by(id=userid).first_or_404()
     return render_template('profile.html', user=user)
 
-# User random a-z challenge progress page
-@app.route('/user/<int:userid>/random', methods=['POST', 'GET'])
-def user_random_hero(userid):
-    user = User.query.filter_by(id=userid).first_or_404()
-    if request.method == 'POST':
-        if request.form.get('skip', False):
-            user.random_skip()
-        elif request.form.get('completed', False):
-            user.random_success()
-    return render_template('hero_random.html', user=user)
-
 # User settings page
 @app.route('/settings', methods=['POST', 'GET'])
 @login_required

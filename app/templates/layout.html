@@ -35,7 +35,6 @@
             <div class="uk-dropdown uk-dropdown-navbar">
                 <ul class="uk-nav uk-nav-navbar">
                     <li><a href="{{ url_for('user_profile', userid=g.user.id) }}">Profile</a></li>
-                    <li><a href="{{ url_for('user_random_hero', userid=g.user.id) }}">A-Z Challenge</a></li>
                     <li><a href="http://board.dotanoobs.com/?page=lastposts">Latest Posts</a></li>
                     {% if g.user.admin %}
                     <li><a href="{{ url_for('event_edit') }}">Add Event</a></li>
