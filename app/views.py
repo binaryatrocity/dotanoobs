@@ -41,7 +41,8 @@ def flash_form_errors(form):
 def index():
     active = Event.query.filter(Event.start_time <= datetime.utcnow(), Event.end_time > datetime.utcnow()).all()
     upcoming =  Event.query.filter(Event.start_time > datetime.utcnow()).limit(2).all()
-    return render_template("index.html", active_events=active, upcoming_events=upcoming)
+    channels = User.get_streaming_users()
+    return render_template("index.html", active_events=active, upcoming_events=upcoming, streamers=channels)
 	
 @app.route('/login')
 @oid.loginhandler
@@ -78,6 +79,11 @@ def teamspeak():
 @app.route('/friends')
 def friends():
 	return render_template('friends.html') 
+
+# Stream pages
+@app.route('/shaneomad')
+def twitch_shaneomad():
+    return render_template('potatr.html', twitch_id=app.config.TWITCH_CLIENT_ID)
 
 # User profile page
 @app.route('/user/<int:userid>')

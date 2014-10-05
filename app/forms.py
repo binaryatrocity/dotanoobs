@@ -6,6 +6,7 @@ class SettingsForm(Form):
     public = BooleanField('public', default=True)
     logo = BooleanField('biglogo', default=True)
     twitch = TextField('twitch')
+    hitbox = TextField('hitbox')
     bio_text = TextAreaField('bio_text')
 
 class EnableStatsForm(Form):

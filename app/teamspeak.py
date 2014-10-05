@@ -361,11 +361,11 @@ def award_idle_ts3_points(server):
             if client['cid'] not in exempt_cids:
                 try:
                     doob = models.User.query.filter_by(teamspeak_id=client['client_unique_identifier']).first()
+                    if doob:
+                        doob.update_connection()
+                        active_users.add(doob)
                 except KeyError:
                     pass
-                if doob:
-                    doob.update_connection()
-                    active_users.add(doob)
         doobs = set(models.User.query.filter(models.User.ts3_starttime != None).all())
         for doob in doobs.intersection(active_users):
             doob.finalize_connection() 

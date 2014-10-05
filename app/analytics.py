@@ -1,7 +1,7 @@
 import requests
 from time import sleep, mktime
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from app import app, db, models
 
@@ -14,10 +14,15 @@ def collect_match_results(dotabuff_id, num_matches):
         page += 1
         url = "http://dotabuff.com/players/{}/matches/?page={}".format(dotabuff_id, page)
         data = requests.get(url).text
-        soup = BeautifulSoup(data).article.table.tbody
-        # Catch last page
-        if 'sorry' in soup.tr.td.text.lower():
+        try:
+            soup = BeautifulSoup(data).article.table.tbody
+        except:
             break
+        else:
+            # Catch last page
+            if 'sorry' in soup.tr.td.text.lower():
+                break
+
         # Parse the matches on current page
         for row in soup.find_all('tr'):
             # Pass over bot matches and other 'inactive' games
@@ -43,7 +48,7 @@ def apply_window(results, window_size=50):
     windows = []
     # Compute the initial window
     win_rate = 0.00
-    for idx in range(0, window_size):
+    for idx in range(0, window_size-1):
         win_rate += 1 if results[idx]['win'] else 0
     win_rate /= window_size
     windows.append(win_rate)
@@ -59,18 +64,38 @@ def apply_window(results, window_size=50):
         windows.append(win_rate)
     return windows
 
+# Single user alternative for testing/calculating on demand
+def calculate_winrate(user_id):
+    user = models.User.query.get(user_id)
+    db_id = requests.get("http://dotabuff.com/search?q="+user.steam_id).url.split("/")[-1]
+    result = collect_match_results(db_id, app.config['ANALYTICS_WINRATE_NUM_MATCHES'])
+    windowed = apply_window(result, app.config['ANALYTICS_WINRATE_WINDOW'])
+    date_nums = map(lambda x: mktime(x['datetime'].timetuple()),\
+            result[app.config['ANALYTICS_WINRATE_WINDOW']-1:])
+    winrate = {'total_games': len(result), 'data': zip(date_nums, windowed) }
+    user.winrate_data = winrate
+    db.session.commit()
+
 def calculate_winrates():
     users_analyzed = 0
-    for user in models.User.query.all():
+    delta = datetime.utcnow() - timedelta(weeks=4)
+    print "Starting winrate calculation"
+    for user in models.User.query.filter(models.User.last_seen > delta).all():
+        print "Begin calculating winrate for {}".format(user.nickname.encode('utf-8'))
         db_id = requests.get("http://dotabuff.com/search?q="+user.steam_id).url.split("/")[-1]
         result = collect_match_results(db_id, app.config['ANALYTICS_WINRATE_NUM_MATCHES'])
-        windowed = apply_window(result, app.config['ANALYTICS_WINRATE_WINDOW'])
-        date_nums = map(lambda x: mktime(x['datetime'].timetuple()),\
-                result[app.config['ANALYTICS_WINRATE_WINDOW']-1:])
-        winrate = {'total_games': len(result), 'data': zip(date_nums, windowed) }
-        user.winrate_data = winrate
-        db.session.commit()
-        users_analyzed += 1
-        sleep(60)
+        if len(result):
+            windowed = apply_window(result, app.config['ANALYTICS_WINRATE_WINDOW'])
+            date_nums = map(lambda x: mktime(x['datetime'].timetuple()),\
+                    result[app.config['ANALYTICS_WINRATE_WINDOW']-1:])
+            winrate = {'total_games': len(result), 'data': zip(date_nums, windowed) }
+            user.winrate_data = winrate
+            db.session.commit()
+            users_analyzed += 1
+            print "Finished winrate calculation for {} ({} total games)".format(user.nickname.encode('utf-8'), winrate['total_games'])
+            sleep(60)
+        else:
+            print "DotaBuff unable to access match statistics for {}".format(user.nickname.encode('utf-8'))
     app.logger.info("Calculated win rate numbers for {} doobs.".format(users_analyzed))
+    print "Calculated win rate numbers for {} doobs.".format(users_analyzed)
     return users_analyzed

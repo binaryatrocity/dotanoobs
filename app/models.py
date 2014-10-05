@@ -28,8 +28,11 @@ class Json(db.TypeDecorator):
         return value
 
     def process_result_value(self, value, dialect):
-        if value is not None:
-            value = json.loads(value)
+        try:
+            if value is not None:
+                value = json.loads(value)
+        except ValueError:
+            return {}
         return value
 
 # Mongoness factor - phase 2
@@ -72,6 +75,7 @@ class User(db.Model):
         created = db.Column(db.DateTime)
         last_seen = db.Column(db.DateTime)
         twitch = db.Column(db.String(60))
+        hitbox = db.Column(db.String(60))
         random_heroes = db.Column(MutableDict.as_mutable(Json))
         az_completions = db.Column(db.Integer)
 
@@ -94,6 +98,19 @@ class User(db.Model):
         @classmethod
         def get_or_create(self, steam_id):
             return get_or_create_instance(db.session, User, steam_id=steam_id)
+
+        @classmethod
+        def get_streaming_users(self):
+            twitch_streams = []
+            hitbox_streams = []
+            for user in User.query.all():
+		if user.points_from_events + user.points_from_ts3 + user.points_from_forum < 5: continue
+                if user.twitch:
+                    twitch_streams.append(user.twitch)
+                if user.hitbox:
+                    hitbox_streams.append(user.hitbox)
+
+            return {'twitch': twitch_streams, 'hitbox': hitbox_streams}
 
         def __init__(self, steam_id):
             self.steam_id = steam_id

@@ -26,6 +26,10 @@
                     {{ form.twitch(placeholder="e.g. shaneomad") }}
                 </div>
                 <div class="uk-form-row">
+                    <label class="uk-form-label">Hitbox.tv Username:</label> <br/>
+                    {{ form.hitbox(placeholder="e.g. shaneomad") }}
+                </div>
+                <div class="uk-form-row">
                     <label class="uk-form-label">Biography text:</label><br/>
                     {{ form.bio_text(rows=14, class='uk-width-1-1', data=g.user.bio_text,  placedholder='What you place here is displayed in your profile when other users view it.') }}
                 </div>
