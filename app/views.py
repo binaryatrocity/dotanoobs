@@ -80,11 +80,6 @@ def teamspeak():
 def friends():
 	return render_template('friends.html') 
 
-# Stream pages
-@app.route('/shaneomad')
-def twitch_shaneomad():
-    return render_template('potatr.html', twitch_id=app.config.TWITCH_CLIENT_ID)
-
 # User profile page
 @app.route('/user/<int:userid>')
 def user_profile(userid):

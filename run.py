@@ -57,7 +57,15 @@ def install_cronjobs():
         print "Problem installing cronjobs: {}".format(e)
     else:
         cron.write()
-        print "Cron jobs written succesfully"
+        print "Cron jobs written successfully"
+
+@manager.command
+def delete_cronjobs():
+    from os import path
+    from crontab import CronTab
+    cron = CronTab(user=True)
+    cron.remove_all(comment='DOOBSAUTO')
+    print "Existing cronjobs deleted successfully"
 
 @manager.command
 def admin(name):
