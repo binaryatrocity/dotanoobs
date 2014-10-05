@@ -70,12 +70,6 @@
                 </tr>
             </tbody>
         </table>
-        {% if not user.winrate_data['data'] %}
-        <h3 class="uk-text-warning">No data compiled, check back tomorrow!</h3>
-        <button class="uk-button uk-button-success uk-align-center" data-uk-modal="{target: '#winrate_modal'}" disabled>View Winrate</button>
-        {% else %}
-        <button class="uk-button uk-button-success uk-align-center" data-uk-modal="{target: '#winrate_modal'}">View Winrate</button>
-        {% endif %}
         {% endif %}
     </div>
 </div>
