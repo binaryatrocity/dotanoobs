@@ -104,6 +104,10 @@ def ts3_process_events():
     tsServer = createTeamspeakInstance()
     process_ts3_events(tsServer)
 
+@manager.command
+def forum_award_points():
+    for user in models.User.query.filter(models.User.forum_id != None).all():
+        user.update_forum_posts()
 
 if __name__ == '__main__':
     manager.run()

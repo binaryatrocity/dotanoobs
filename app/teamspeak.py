@@ -348,6 +348,7 @@ def award_idle_ts3_points(server):
             for channel in list_response.data:
                 if exempt_check(channel['cid']):
                     exempt_cids.append(channel['cid'])
+
         # Get list of clients
         clientlist = server.clientlist()
         for clid, client in clientlist.iteritems():
@@ -366,6 +367,7 @@ def award_idle_ts3_points(server):
                         active_users.add(doob)
                 except KeyError:
                     pass
+
         doobs = set(models.User.query.filter(models.User.ts3_starttime != None).all())
-        for doob in doobs.intersection(active_users):
+        for doob in doobs.difference(active_users):
             doob.finalize_connection() 

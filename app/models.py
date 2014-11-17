@@ -1,5 +1,5 @@
 import simplejson as json
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.mutable import Mutable
 
@@ -86,7 +86,8 @@ class User(db.Model):
         ts3_starttime = db.Column(db.DateTime)
         ts3_endtime = db.Column(db.DateTime)
         ts3_rewardtime = db.Column(db.DateTime)
-        ts3_connections = db.Column(MutableDict.as_mutable(Json))
+        ts3_stretch_award_time = db.Column(db.DateTime)
+        ts3_longest_stretch = db.Column(db.Interval)
 
         last_post_reward = db.Column(db.Integer)
         winrate_data = db.Column(MutableDict.as_mutable(Json))
@@ -112,8 +113,8 @@ class User(db.Model):
         def __init__(self, steam_id):
             self.steam_id = steam_id
             self.az_completions = 0
-            self.ts3_connections = {'list':[]}
             self.ts3_rewardtime = datetime.utcnow()
+            self.ts3_longest_stretch = timedelta()
             self.created = datetime.utcnow()
             self.last_seen = datetime.utcnow()
             self.bio_text = None 
@@ -128,21 +129,28 @@ class User(db.Model):
             now = datetime.utcnow()
             self.ts3_starttime = self.ts3_starttime or now
             self.ts3_endtime = now
+
             # Add general TS3 points here
-            if self.ts3_endtime and self.ts3_rewardtime:
-                delta = (self.ts3_endtime - self.ts3_rewardtime)
-                duration = (delta.seconds % 3600) // 60
-                if duration > reward_threshold:
-                    self.ts3_rewardtime = datetime.utcnow()
-                    self.points_from_ts3 += 1
-                else:
-                    self.ts3_rewardtime = datetime.utcnow()
+            delta = (self.ts3_endtime - self.ts3_rewardtime)
+            duration = (delta.seconds % 3600) // 60
+            if duration > reward_threshold:
+                self.ts3_rewardtime = datetime.utcnow()
+                self.points_from_ts3 += 1
+
+            # Update last_seen for web profile
             self.last_seen = datetime.utcnow()
             db.session.commit();
 
         def finalize_connection(self):
-            self.ts3_connections['list'].append({'starttime': self.ts3_starttime, 'endtime': self.ts3_endtime})
-            self.ts3_startime = None
+            # Check for longest!
+            if self.ts3_endtime and self.ts3_starttime:
+                current_stretch = self.ts3_endtime - self.ts3_starttime
+                if current_stretch > self.ts3_longest_stretch:
+                    self.ts3_longest_stretch = current_stretch
+                    self.ts3_stretch_award_time = datetime.utcnow()
+
+            # Reset values
+            self.ts3_starttime = None
             self.ts3_endtime = None
             db.session.commit();
 
@@ -151,6 +159,7 @@ class User(db.Model):
                 posts = board.Users.select().where(board.Users.id == int(self.forum_id))[0].posts
                 if self.last_post_reward:
                     num_points = (posts - self.last_post_reward) / reward_threshold
+                    print("Old: {0}, New: {1}, ({0} - {1}) / {2}, {3}, {4}".format(self.last_post_reward, posts, reward_threshold, num_points, self.nickname))
                     if num_points > 0:
                         self.points_from_forum += num_points
                         self.last_post_reward += num_points * reward_threshold
@@ -266,7 +275,7 @@ class Event(db.Model):
         @property
         def expired(self):
             current_time = datetime.utcnow()
-            return self.end_time < curent_time
+            return self.end_time < current_time
 
         def add_participant(self, user):
             entry = self.participants.setdefault(user, {'start_time': datetime.utcnow() })
