@@ -56,7 +56,7 @@ def create_or_login(resp):
 	match = app.config['STEAM_ID_RE'].search(resp.identity_url)
 	g.user = User.get_or_create(match.group(1))
 	steamdata = get_steam_userinfo(g.user.steam_id)
-	g.user.nickname = steamdata['personaname']
+	g.user.nickname = steamdata['personaname'].encode('utf-8')
 	g.user.avatar = steamdata['avatar']
 	db.session.commit()
 	session['user_id'] = g.user.id
